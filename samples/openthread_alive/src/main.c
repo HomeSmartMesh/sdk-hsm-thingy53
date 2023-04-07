@@ -8,7 +8,9 @@
 #include <zephyr/logging/log.h>
 
 #include <zephyr/drivers/uart.h>
-#include <zephyr/usb/usb_device.h>
+#include <stdio.h>
+#include "udp_client.h"
+
 
 LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 
@@ -22,7 +24,13 @@ void main(void)
 {
 	LOG_INF(WELLCOME_TEXT);
 
+	int count = 0;
 	while(1){
+		char message[250];
+		int size = sprintf(message,"thread_thingy_53/{\"alive\":%d}",count);
+		send_udp(message, size);
+		count++;
+
 		LOG_INF("sleeping 10 sec");
 		k_sleep(K_MSEC(10000));
 	}
