@@ -3,6 +3,6 @@ Home Automation Software-Development-Kit from Home-Smart-Mesh for the Nordic Thi
 
 # usage
 ```bash
-west init -m https://github.com/HomeSmartMesh/sdk-hsm-sensortag -mr main
+west init -m https://github.com/HomeSmartMesh/sdk-hsm-thingy53 --mr main
 ```
 

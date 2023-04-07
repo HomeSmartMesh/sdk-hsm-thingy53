@@ -1,5 +1,5 @@
 manifest:
-  version: 1.0
+  version: "0.12"
   remotes:
     # Home Smart Mesh GitHub organization.
     - name: hsm
