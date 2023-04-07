@@ -18,6 +18,11 @@ manifest:
       repo-path: sdk-nrf
       revision: v2.3.0
       path: nrf
+    - name: nrfxlib
+      remote: ncs
+      repo-path: sdk-nrfxlib
+      path: nrfxlib
+      revision: v2.3.0
     - name: zephyr
       remote: ncs
       repo-path: sdk-zephyr
