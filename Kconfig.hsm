@@ -1,0 +1,6 @@
+
+menu "Home Smart Mesh"
+
+rsource "samples/Kconfig"
+
+endmenu

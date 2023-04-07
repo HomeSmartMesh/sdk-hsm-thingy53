@@ -1,0 +1,5 @@
+config HSM_SAMPLES_DEFAULTS
+	bool "Enable HSM sample default settings"
+	default n
+	help
+	  Use the default configuration for HSM samples.

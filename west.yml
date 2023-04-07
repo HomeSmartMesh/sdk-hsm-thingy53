@@ -1,0 +1,37 @@
+manifest:
+  version: 1.0
+  remotes:
+    # Home Smart Mesh GitHub organization.
+    - name: hsm
+      url-base: https://github.com/HomeSmartMesh
+    - name: zephyrproject
+      url-base: https://github.com/zephyrproject-rtos
+
+  defaults:
+    remote: hsm
+
+  projects:
+    - name: zephyr
+      repo-path: zephyr
+      remote: zephyrproject
+      revision: fcaa60a99fa9d5256078ed28557856ec3709cfa9
+      import:
+        name-whitelist:
+          - cmsis
+          - edtt
+          - fatfs
+          - hal_nordic
+          - libmetal
+          - littlefs
+          - lvgl
+          - mbedtls
+          - mcuboot
+          - mipi-sys-t
+          - net-tools
+          - nrf_hw_models
+          - openthread
+          - segger
+          - tinycrypt
+
+  self:
+    path: hsm
