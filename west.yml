@@ -39,6 +39,7 @@ manifest:
           - mipi-sys-t
           - net-tools
           - nrf_hw_models
+          - open-amp
           - openthread
           - segger
           - tinycrypt
