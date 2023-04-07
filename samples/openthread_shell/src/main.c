@@ -7,14 +7,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#if defined(CONFIG_BT)
-#include "ble.h"
-#endif
-
-#if defined(CONFIG_CLI_SAMPLE_LOW_POWER)
-#include "low_power.h"
-#endif
-
 #include <zephyr/drivers/uart.h>
 #include <zephyr/usb/usb_device.h>
 
@@ -23,12 +15,8 @@ LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 #define WELLCOME_TEXT \
 	"\n\r"\
 	"\n\r"\
-	"OpenThread Command Line Interface is now running.\n\r" \
-	"Use the 'ot' keyword to invoke OpenThread commands e.g. " \
-	"'ot thread start.'\n\r" \
-	"For the full commands list refer to the OpenThread CLI " \
-	"documentation at:\n\r" \
-	"https://github.com/openthread/openthread/blob/master/src/cli/README.md\n\r"
+	"OpenThread main()\n\r" \
+	"cli ready\n\r"
 
 void main(void)
 {
@@ -70,11 +58,4 @@ void main(void)
 
 	LOG_INF(WELLCOME_TEXT);
 
-#if defined(CONFIG_BT)
-	ble_enable();
-#endif
-
-#if defined(CONFIG_CLI_SAMPLE_LOW_POWER)
-	low_power_enable();
-#endif
 }

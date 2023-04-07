@@ -9,6 +9,10 @@ cd thingy53
 >west update
 cd thingy53/hsm/samples/bme680
 >west build -b thingy53_nrf5340_cpuapp
+
+cd thingy53/hsm/samples/openthread_alive
+>west build -b thingy53_nrf5340_cpuapp -- -DOVERLAY_CONFIG="overlay-logging.conf"
+
 ```
 * connect to USB
 * power on while holding SW2 down, see details on [updating thingy53 through USB](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/working_with_nrf/nrf53/thingy53_gs.html#updating-through-usb)
