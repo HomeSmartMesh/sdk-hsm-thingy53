@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <zephyr/sys/reboot.h>
 #include <openthread/thread.h>
-#include <openthread/platform/settings.h>
 #include <openthread/instance.h>
 #include "udp_client.h"
 #include "app_button.h"
@@ -33,7 +32,7 @@ void click(void){
 
 void long_press(){
 	LOG_INF("button - long press - OpenThread Factory Reset");
-	otPlatSettingsWipe(instance);
+	otInstanceFactoryReset(instance);
 	sys_reboot(SYS_REBOOT_COLD);
 }
 
