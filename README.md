@@ -1,29 +1,69 @@
 # sdk-hsm-thingy53
 Home Automation Software-Development-Kit from Home-Smart-Mesh for the Nordic Thingy53 dev kit
 
-# usage
+![USB Attachments](./design/thingy53-usb-attachments.webp)
+
+Hardware
+* Nordic's [Thingy53](https://www.nordicsemi.com/Products/Development-hardware/Nordic-Thingy-53) IoT Prototyping platform
+* Segger's [j-Link Edu mini](https://www.segger.com/products/debug-probes/j-link/models/j-link-edu-mini/) (optional)
+
+
+# Usage
 ```bash
 mkdir thingy53
 cd thingy53
 >west init -m https://github.com/HomeSmartMesh/sdk-hsm-thingy53 --mr main
 >west update
-cd thingy53/hsm/samples/bme680
->west build -b thingy53_nrf5340_cpuapp
-
-cd thingy53/hsm/samples/openthread_alive
->west build -b thingy53_nrf5340_cpuapp -- -DOVERLAY_CONFIG="overlay-logging.conf"
-
 ```
 * connect to USB
 * power on while holding SW2 down, see details on [updating thingy53 through USB](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/working_with_nrf/nrf53/thingy53_gs.html#updating-through-usb)
 * with nRFConnect Programmer flash `hsm\samples\bme680\build\zephyr\dfu_application.zip`
 
-# deveopment guide
+# Samples
+## 01_BME680
+* This is the default [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
+* the sensor used is the [Bosch-sensortec BME680](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/) used for
+    * Temperature
+    * Air pressure
+    * Humidity
+    * Air quality Gas Sensor
+
+build
+```shell
+cd thingy53/hsm/samples/01_bme680
+>west build -b thingy53_nrf5340_cpuapp
+```
+
+output log
+```
+Device 0x20002b74 name is BME680
+T: 23.988877; P: 97.648568; H: 53.689533; G: 1035.211466
+T: 24.168500; P: 97.648866; H: 53.565966; G: 1046.677896
+```
+## 11_openthread_shell
+* provides a shell on the USB UART interface that allows to manually configure the openthread stack
+
+build
+```shell
+cd thingy53/hsm/samples/11_openthread_shell
+>west build -b thingy53_nrf5340_cpuapp
+```
+## 12_openthread_alive
+* automatically configures openthread credentials 
+* loops sending alive messages as thread udp packets
+* optionally takes an `overlay-logging.conf` for openthread and loop info
+
+build
+```shell
+cd thingy53/hsm/samples/12_openthread_shell
+>west build -b thingy53_nrf5340_cpuapp -- -DOVERLAY_CONFIG="overlay-logging.conf"
+```
+# Deveopment guide
 This repository is a [Zephyr workspace application](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/application/index.html#zephyr-workspace-application) that contains the samples source code only therefore lightweight to clone and manage, yet it tracks an exact reference of all dependencies that get deployed once initialized with `west init`
 
 ![Dependencies](./design/dependencies.drawio.svg)
 
-## how was this repo created
+## How was this repo created
 * step one is to get familiar with Zephyr a good reference is https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/index.html
 * second is to focus on the subsection for west https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/west/index.html
 
