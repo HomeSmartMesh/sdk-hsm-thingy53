@@ -52,12 +52,19 @@ cd thingy53/hsm/samples/11_openthread_shell
 * automatically configures openthread credentials 
 * loops sending alive messages as thread udp packets
 * optionally takes an `overlay-logging.conf` for openthread and loop info
+* default is using joiner PSKD `ABCDE2`
+* using `prj-fixed-credentials.conf` allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
 
 build
 ```shell
 cd thingy53/hsm/samples/12_openthread_shell
 >west build -b thingy53_nrf5340_cpuapp -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
+Note on joining:
+* the `eui64` can be known by first flashing the shell sample
+* when flashing this sample only, the `eui64` is considered to be unknown and joining would have to use '*' as `eui64` parameter for the commissionner
+
+
 # Deveopment guide
 This repository is a [Zephyr workspace application](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/application/index.html#zephyr-workspace-application) that contains the samples source code only therefore lightweight to clone and manage, yet it tracks an exact reference of all dependencies that get deployed once initialized with `west init`
 
@@ -73,12 +80,3 @@ This repository is targetting an nRF dev kit, thereforeit is safer to derive it 
 * in the application `zephyr`, the `name-allowlist` helps reduce the dependencies from Zephyr
 * note also some Zephyr dependencies can be replaced with top level projects such as mbedtls which is then taken from nRF fork and not from Zephyr
 * in case of Kconfig wanrings, it is necessary to compare with the original repo (ncs/nrf) and find the directory (dependency) where that flag is used e.g. missing config for `NRF_MODEM_LIB_SHMEM_CTRL_SIZE` which default is `NRF_MODEM_SHMEM_CTRL_SIZE` defined in `nrfxlib\nrf_modem\Kconfig` that shows a dependency from `nrfconnect/nrf` to `nrfconnect/nrfxlib`
-
-### test
-```mermaid
-  graph TD;
-      A-->B;
-      A-->C;
-      B-->D;
-      C-->D;
-```
