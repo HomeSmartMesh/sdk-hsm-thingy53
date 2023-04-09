@@ -51,11 +51,10 @@ cd thingy53/hsm/samples/11_openthread_shell
 >west build
 ```
 ## 12_openthread_alive
-* automatically configures openthread credentials 
-* loops sending alive messages as thread udp packets
-* optionally takes an `overlay-logging.conf` for openthread and loop info
-* default is using joiner PSKD `ABCDE2`
+* Commissioning with a joiner PSKd (Pre-Shared Key for the Device) `ABCDE2`
 * using `prj-fixed-credentials.conf` allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
+* loops sending alive counter messages as thread udp packets
+* optionally takes an `overlay-logging.conf` for openthread and loop info
 * short SW2 button press < 1 sec : soft reset `SYS_REBOOT_WARM`
 * long SW2 button press > 1 sec : OpenThread Farctory reset (delete credentials) and `SYS_REBOOT_COLD`
 
