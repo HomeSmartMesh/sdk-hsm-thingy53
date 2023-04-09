@@ -26,7 +26,7 @@ void main(void)
 		printf("blue\n");
 		app_led_blink_blue(0.1,300,1000);
 		printf("color\n");
-		app_led_blink_color(0.001,0.1,0.3,300,3000);
+		app_led_blink_color(0.001,0.2,0.3,300,3000);
 		printf("led counter : %" PRIu32 "\n",count);
 		count++;
 	}
