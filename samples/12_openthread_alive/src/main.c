@@ -11,11 +11,18 @@
 #include <stdio.h>
 #include <zephyr/sys/reboot.h>
 #include <openthread/thread.h>
+#include <openthread/link.h>
 #include <openthread/instance.h>
 #include "udp_client.h"
 #include "app_button.h"
 
 otInstance* instance;
+#if defined(CONFIG_OPENTHREAD_JOINER_PSKD)
+#define OT_JOINER_PSKD CONFIG_OPENTHREAD_JOINER_PSKD
+#else
+#define OT_JOINER_PSKD ""
+#endif
+
 
 LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 
@@ -36,6 +43,15 @@ void long_press(){
 	sys_reboot(SYS_REBOOT_COLD);
 }
 
+void get_eui64(char* eui64){
+	otExtAddress aEui64;
+	otLinkGetFactoryAssignedIeeeEui64(instance,&aEui64);
+	for(int i=0;i<8;i++){
+		sprintf(eui64+=2,"%02X",aEui64.m8[i]);
+	}
+	eui64[16] = '\0';
+}
+
 void main(void)
 {
 	instance = otInstanceInitSingle();
@@ -46,6 +62,12 @@ void main(void)
 	app_button_set_long_callback(long_press);
 	app_button_set_short_timeout(1000);
 	app_button_set_long_timeout(4000);
+
+	char eui64[17];
+	get_eui64(eui64);
+	LOG_INF("Joiner eui64: %s ; pskd: %s\n",eui64,OT_JOINER_PSKD);
+	LOG_INF("qrcode: v=1&&eui=%s&&cc=%s\n",eui64,OT_JOINER_PSKD);
+	LOG_INF("https://dhrishi.github.io/connectedhomeip/qrcode.html?data=v\%3D1\%26\%26eui\%3D%s\%26\%26cc\%3D%s\n",eui64,OT_JOINER_PSKD);
 
 	int count = 0;
 	while(1){

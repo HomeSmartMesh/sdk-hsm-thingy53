@@ -81,11 +81,10 @@ Note on joining:
 # Updates
 * light color sensor
 * RGB Led notification service
-* battery voltage
-* if not connected, rerstart after timeout, which will retry join
+* if not connected, restart after timeout, which will retry join
+* extract eui64 and joiner PSKD
 * watchdog restart
 * power measurements
-* button as shared library
 * microhpone streaming
 * microphone local
 
