@@ -36,8 +36,8 @@ int64_t press_time;
 static void button_hold_timeout(struct k_work *work)
 {
 	triggered = true;//used to cancel
-	LOG_INF("Button hold timeout\n");
-	if(button_long_press){
+	printk("Button hold timeout\n");
+	if(button_long_press != NULL){
 		button_long_press();
 	}
 }
@@ -58,23 +58,24 @@ void button_interrupt(const struct device *dev, struct gpio_callback *cb, uint32
 	if (pressed) {
 		press_time = k_uptime_get();
 		triggered = false;
+		booting = false;
 		k_work_reschedule(&long_press_work, LONG_PRESS_TIMEOUT);
-		LOG_INF("Button pressed at %" PRIi64 "\n", press_time);
+		LOG_INF("Button pressed at %" PRIi64, press_time);
 	}
 	else{//released
 		if(booting){
-			LOG_INF("Button released after boot\n");
+			LOG_INF("Button released after boot");
 			booting = false;
 		}
 		else{
 			if(!triggered){//that's because it was released too early - cancel hold timeout
 				int64_t time = k_uptime_delta(&press_time);
 				if(time < short_press_timeout_ms){
-					if(button_short_press){
+					if(button_short_press != NULL){
 						button_short_press();
 					}
 				}else{
-					LOG_INF("Button released after %" PRIi64 " ms - not short, not long\n", time);
+					LOG_INF("Button released after %" PRIi64 " ms - not short, not long", time);
 				}
 				k_work_cancel_delayable(&long_press_work);
 			}//else triggered, nothing to do, release after trigger
@@ -110,7 +111,7 @@ int app_button_init(void){
 
 	gpio_init_callback(&button_cb_data, button_interrupt, BIT(button.pin));
 	gpio_add_callback(button.port, &button_cb_data);
-	LOG_INF("Set up button at %s pin %d\n", button.port->name, button.pin);
+	LOG_INF("Set up button at %s pin %d", button.port->name, button.pin);
 
 	return ret;
 }

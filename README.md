@@ -21,6 +21,7 @@ cd thingy53
 
 # Samples
 for convenience and given that this repo is providing samples for `thingy53_nrf5340_cpuapp` board, it has been configured in the CMakeLists.txt to be taken as default board, it is still possbile to override it with -b option.
+
 ## 01_BME680
 * This is the default [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
 * this samples runs as is without modifications on the thingy53 board thanks to the proper device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts`
@@ -68,17 +69,23 @@ Note on joining:
 * when flashing this sample only, the `eui64` is considered to be unknown and joining would have to use '*' as `eui64` parameter for the commissionner
 
 # Updates
-## Thread robustness
-* join retry timeout
-* join retry with restart or function call
+* light color sensor
+* RGB Led notification service
+* battery voltage
+* if not connected, rerstart after timeout, which will retry join
 * watchdog restart
-* factory reset on long button press
-* restart on button press
+* power measurements
+* button as shared library
+* microhpone streaming
+* microphone local
 
 # Deveopment guide
 This repository is a [Zephyr workspace application](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/application/index.html#zephyr-workspace-application) that contains the samples source code only therefore lightweight to clone and manage, yet it tracks an exact reference of all dependencies that get deployed once initialized with `west init`
 
 ![Dependencies](./design/dependencies.drawio.svg)
+
+## Tricks and traps
+* k_sleep in interrupt functions might lead to os crash, usage of LOG effect unclear so to be avoided
 
 ## How was this repo created
 * step one is to get familiar with Zephyr a good reference is https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/index.html
