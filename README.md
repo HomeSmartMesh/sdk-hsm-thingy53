@@ -21,8 +21,17 @@ cd thingy53
 
 # Samples
 for convenience and given that this repo is providing samples for `thingy53_nrf5340_cpuapp` board, it has been configured in the CMakeLists.txt to be taken as default board, it is still possbile to override it with -b option.
+## 03_battery
 
-## 01_BME680
+* Power Management Integrated Circuit specification [nPM1100_PS_v1.3.pdf](https://infocenter.nordicsemi.com/pdf/nPM1100_PS_v1.3.pdf)
+* Thingy53 schematics `PCA20053_Schematic_And_PCB.pdf`
+
+used pios
+* Battery Measure ENABLE P0.16 `vbatt.power-gpio` in `thingy53_nrf5340_common.dts`
+* Battery Measure BAT_MEAS P0.06/AIN2 `vbatt.io-channels` in `thingy53_nrf5340_common.dts`
+* Battery charging Indicator CHG PMIC_STATUS P1.00 `battery-charge-gpios` in `app.overlay`
+
+## 04_BME680
 * This is the default [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
 * this samples runs as is without modifications on the thingy53 board thanks to the proper device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts`
 * the sensor used is the [Bosch-sensortec BME680](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/) used for
@@ -33,7 +42,7 @@ for convenience and given that this repo is providing samples for `thingy53_nrf5
 
 build
 ```shell
-cd thingy53/hsm/samples/01_bme680
+cd thingy53/hsm/samples/04_bme680
 >west build
 ```
 
@@ -43,6 +52,7 @@ Device 0x20002b74 name is BME680
 T: 23.988877; P: 97.648568; H: 53.689533; G: 1035.211466
 T: 24.168500; P: 97.648866; H: 53.565966; G: 1046.677896
 ```
+
 ## 11_openthread_shell
 * provides a shell on the USB UART interface that allows to manually configure the openthread stack
 
