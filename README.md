@@ -122,6 +122,9 @@ Note on joining:
 * the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
 * without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
+# 13_ot_udp_server
+* 6LowPAN defines a fragmentation and reassembly layer
+
 # Updates
 * MQTT publish sample
 * reliable ot tx rx, e.g. tcp, websocket, session,... for packet request response
