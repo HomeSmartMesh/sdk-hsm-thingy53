@@ -86,7 +86,19 @@ build
 cd thingy53/hsm/samples/11_openthread_shell
 >west build
 ```
-## 12_openthread_alive
+
+## 12_openthread_udp
+* using a fixed openthread network config allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
+* loops sending alive counter messages as thread udp packets
+* `overlay-logging.conf` uses RTT and USB log for openthread state and loop count
+
+build options
+```shell
+>west build
+>west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
+```
+
+## 12_openthread_joiner
 * Commissioning with a joiner PSKd (Pre-Shared Key for the Device) `ABCDE2`
     * needs the commissioner to be ready for this device
 * short SW2 button press < 1 sec : soft reset `SYS_REBOOT_WARM`
@@ -98,25 +110,28 @@ cd thingy53/hsm/samples/11_openthread_shell
     * Joiner `pskd` built with in the provided config
     * the qrcode text containing the `eui64` and `pskd` as parameters
     * a url to a generated qrcode image to be used for joining
-* using `prj-fixed-credentials.conf` allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
 * loops sending alive counter messages as thread udp packets
 
-build options, the default is the release openthread joiner config
+build options
 ```shell
 >west build
->west build -- -DCONF_FILE="prj-fixed-credentials.conf"
 >west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
+
 Note on joining:
-* the `eui64` can be known by first flashing the shell sample
-* when flashing this sample only, the `eui64` is considered to be unknown and joining would have to use '*' as `eui64` parameter for the commissionner
+* the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
+* without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
 # Updates
-* light color sensor
+* MQTT publish sample
+* reliable ot tx rx, e.g. tcp, websocket, session,... for packet request response
+* main cpp and json for structured request response
+* adopt url pattern (instead of mqtt topic) for endpoints
+* Python MQTT Translator for request response with json bodies (no CoAP)
 * RGB Led notification service
-* if not connected, restart after timeout, which will retry join
-* extract eui64 and joiner PSKD
-* watchdog restart
+* sensors json logger service (configurable sensors and rates)
+* ot lifecycle, if not connected, restart after timeout, which will retry join
+* system lifecycle, watchdog restart
 * power measurements
 * microhpone streaming
 * microphone local
