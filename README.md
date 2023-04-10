@@ -15,12 +15,35 @@ cd thingy53
 >west init -m https://github.com/HomeSmartMesh/sdk-hsm-thingy53 --mr main
 >west update
 ```
+## building a sample
+```bash
+>cd hsm/samples/12_openthread_alive
+>west build
+```
+## flashing
+flashing using an attached debugger
+```
+>west flash
+```
+
+flashing manually
 * connect to USB
 * power on while holding SW2 down, see details on [updating thingy53 through USB](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/working_with_nrf/nrf53/thingy53_gs.html#updating-through-usb)
-* with nRFConnect Programmer flash `hsm\samples\bme680\build\zephyr\dfu_application.zip`
+* with nRFConnect Programmer flash `hsm\samples\12_openthread_alive\build\zephyr\dfu_application.zip`
+
+Serial Port
+* USB Serial Port : with the config `CONFIG_STDOUT_CONSOLE=y` this board creates a UAB virtual COM port of stdout. Note using the nRFSDK Connect Serial Terminal allows auto detection and reconnect of serial ports, very useful to recover automatically after flashing
+* RTT Debugger Serial Port : using `CONFIG_USE_SEGGER_RTT=y` it is possible to have logs with the attached debugger and without using the board USB device, this needs rebuild the sample differently though.
 
 # Samples
 for convenience and given that this repo is providing samples for `thingy53_nrf5340_cpuapp` board, it has been configured in the CMakeLists.txt to be taken as default board, it is still possbile to override it with -b option.
+## 01_alive_counter_uart
+simplest program for checking UART with a live counter
+## 02_rgb_led
+controlling the colors of the Red Green and Blue LEDs with pwm
+* function for setting x3 float colors
+* function for blinking a color
+
 ## 03_battery
 
 * Power Management Integrated Circuit specification [nPM1100_PS_v1.3.pdf](https://infocenter.nordicsemi.com/pdf/nPM1100_PS_v1.3.pdf)
@@ -32,7 +55,7 @@ used pios
 * Battery charging Indicator CHG PMIC_STATUS P1.00 `battery-charge-gpios` in `app.overlay`
 
 ## 04_BME680
-* This is the default [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
+* Although the board is equipped with BM688, this sample only uses the common features with the default [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
 * this samples runs as is without modifications on the thingy53 board thanks to the proper device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts`
 * the sensor used is the [Bosch-sensortec BME680](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/) used for
     * Temperature
@@ -40,18 +63,20 @@ used pios
     * Humidity
     * Air quality Gas Sensor
 
-build
-```shell
-cd thingy53/hsm/samples/04_bme680
->west build
-```
-
 output log
 ```
 Device 0x20002b74 name is BME680
 T: 23.988877; P: 97.648568; H: 53.689533; G: 1035.211466
 T: 24.168500; P: 97.648866; H: 53.565966; G: 1046.677896
 ```
+
+## 05_bh1749
+* Color sensor BH1749NUC
+    * [BH1749NUC Datasheet](https://fscdn.rohm.com/en/products/databook/datasheet/ic/sensor/light/bh1749nuc-e.pdf)
+    * Measures Red, Green, Blue and IR
+    * Illuminance Detection Range 80 klx (0.0125 lux/count)
+
+
 
 ## 11_openthread_shell
 * provides a shell on the USB UART interface that allows to manually configure the openthread stack
@@ -63,15 +88,23 @@ cd thingy53/hsm/samples/11_openthread_shell
 ```
 ## 12_openthread_alive
 * Commissioning with a joiner PSKd (Pre-Shared Key for the Device) `ABCDE2`
+    * needs the commissioner to be ready for this device
+* short SW2 button press < 1 sec : soft reset `SYS_REBOOT_WARM`
+    * will retry joining if not attached
+* long SW2 button press > 1 sec : OpenThread Farctory reset (delete credentials) and `SYS_REBOOT_COLD`
+    * will try joining a new network
+* `overlay-logging.conf` uses RTT and USB log and prints the following on startup
+    * Joiner `eui64`
+    * Joiner `pskd` built with in the provided config
+    * the qrcode text containing the `eui64` and `pskd` as parameters
+    * a url to a generated qrcode image to be used for joining
 * using `prj-fixed-credentials.conf` allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
 * loops sending alive counter messages as thread udp packets
-* optionally takes an `overlay-logging.conf` for openthread and loop info
-* short SW2 button press < 1 sec : soft reset `SYS_REBOOT_WARM`
-* long SW2 button press > 1 sec : OpenThread Farctory reset (delete credentials) and `SYS_REBOOT_COLD`
 
-build
+build options, the default is the release openthread joiner config
 ```shell
-cd thingy53/hsm/samples/12_openthread_shell
+>west build
+>west build -- -DCONF_FILE="prj-fixed-credentials.conf"
 >west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
 Note on joining:
