@@ -87,7 +87,7 @@ cd thingy53/hsm/samples/11_openthread_shell
 >west build
 ```
 
-## 12_openthread_udp
+## 12_ot_udp
 * using a fixed openthread network config allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
 * loops sending alive counter messages as thread udp packets
 * `overlay-logging.conf` uses RTT and USB log for openthread state and loop count
@@ -98,7 +98,7 @@ build options
 >west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
 
-## 12_openthread_joiner
+## 13_ot_joiner
 * Commissioning with a joiner PSKd (Pre-Shared Key for the Device) `ABCDE2`
     * needs the commissioner to be ready for this device
 * short SW2 button press < 1 sec : soft reset `SYS_REBOOT_WARM`
@@ -122,8 +122,9 @@ Note on joining:
 * the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
 * without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
-# 13_ot_udp_server
+# 14_ot_udp_server
 * 6LowPAN defines a fragmentation and reassembly layer
+* Rx driver already has a fifo, recv copies in a user buffer that takes time to be consumed
 
 # Updates
 * MQTT publish sample
@@ -144,8 +145,12 @@ This repository is a [Zephyr workspace application](https://developer.nordicsemi
 
 ![Dependencies](./design/dependencies.drawio.svg)
 
-## Tricks and traps
+## Hints and Tricks
 * k_sleep in interrupt functions might lead to os crash, usage of LOG effect unclear so to be avoided
+* Fifo, Lifo, Queue take pointers only, user allocates the data but there's also `k_fifo_alloc_put`
+* Message Queues copy the data provided in a ring buffer, (overwrite oldest)
+* Work queues are used to delay functions execution or order multiple functions execution
+
 
 ## How was this repo created
 * step one is to get familiar with Zephyr a good reference is https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/index.html
@@ -157,3 +162,6 @@ This repository is targetting an nRF dev kit, thereforeit is safer to derive it 
 * in the application `zephyr`, the `name-allowlist` helps reduce the dependencies from Zephyr
 * note also some Zephyr dependencies can be replaced with top level projects such as mbedtls which is then taken from nRF fork and not from Zephyr
 * in case of Kconfig wanrings, it is necessary to compare with the original repo (ncs/nrf) and find the directory (dependency) where that flag is used e.g. missing config for `NRF_MODEM_LIB_SHMEM_CTRL_SIZE` which default is `NRF_MODEM_SHMEM_CTRL_SIZE` defined in `nrfxlib\nrf_modem\Kconfig` that shows a dependency from `nrfconnect/nrf` to `nrfconnect/nrfxlib`
+
+## Zephyr references
+* Kernel services : https://docs.zephyrproject.org/latest/kernel/services/index.html
