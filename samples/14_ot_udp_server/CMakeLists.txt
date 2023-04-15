@@ -12,6 +12,5 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(openthread_cli)
 
-# NORDIC SDK APP START
-target_sources(app PRIVATE src/main.c src/udp_client.c src/app_button.c)
-# NORDIC SDK APP END
+FILE(GLOB app_sources src/*.c)
+target_sources(app PRIVATE ${app_sources})
