@@ -7,7 +7,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
-#include "udp_client.h"
+#include "udp_server.h"
 #include "app_ot.h"
 
 LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
@@ -26,12 +26,8 @@ void main(void)
 
 	int count = 0;
 	while(1){
-		char message[250];
-		int size = sprintf(message,"thread_thingy_53/{\"alive\":%d}",count);
-		send_udp(message, size);
+		LOG_INF("sleeping 10 sec count = %d",count);
 		count++;
-
-		LOG_INF("sleeping 10 sec");
 		k_sleep(K_MSEC(10000));
 	}
 }
