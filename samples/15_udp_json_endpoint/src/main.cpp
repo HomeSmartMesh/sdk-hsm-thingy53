@@ -18,7 +18,7 @@ LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 	"OpenThread main()\n\r" \
 	"udp echo server\n\r"
 
-void main(void)
+int main(void)
 {
 	LOG_INF(WELLCOME_TEXT);
 
