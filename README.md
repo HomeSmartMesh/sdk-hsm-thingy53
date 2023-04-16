@@ -122,9 +122,10 @@ Note on joining:
 * the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
 * without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
-# 14_ot_udp_server
-* 6LowPAN defines a fragmentation and reassembly layer
-* Rx driver already has a fifo, recv copies in a user buffer that takes time to be consumed
+# 14_ot_udp_echo_server
+* separate `udp_rx_handler` thread
+* binds to port 4242 and echoes back received characters (printed as text)
+
 
 # Updates
 * MQTT publish sample

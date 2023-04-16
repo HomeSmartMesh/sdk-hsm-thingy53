@@ -16,7 +16,7 @@ LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 	"\n\r"\
 	"\n\r"\
 	"OpenThread main()\n\r" \
-	"cli ready\n\r"
+	"udp echo server\n\r"
 
 void main(void)
 {

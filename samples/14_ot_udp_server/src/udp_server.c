@@ -69,33 +69,7 @@ int send_udp(uint8_t * data, uint8_t size)
 
 }
 
-bool udp_rx_receive(ssize_t* received){
-
-	struct sockaddr client_addr;
-	//*received = recv(sock, recv_buf, sizeof(recv_buf), MSG_WAITALL);
-	socklen_t client_addr_len = sizeof(client_addr);
-	*received = recvfrom(sock, recv_buf,sizeof(recv_buf), 0,&client_addr, &client_addr_len);
-
-	//ret = sendto(data->udp.sock, data->udp.recv_buffer, received, 0,
-	//			&client_addr, client_addr_len);
-	//if (ret < 0) {
-	//	NET_ERR("UDP: Failed to send %d", errno);
-	//	ret = -errno;
-	//	break;
-	//}
-
-
-	if (*received < 0) {
-		NET_ERR("UDP: Connection error %d", errno);
-		return false;
-	}
-	else{
-		return true;
-	}
-}
-
 void udp_rx_handler(){
-	ssize_t nb_rec;
 
 	LOG_INF("hello from udp_rx_handler()");
     if(!udp_started){//could be started by higher prio thread that wants to send
@@ -104,13 +78,22 @@ void udp_rx_handler(){
     }
 
 	while(true){
-
 		LOG_INF("waiting for udp recv()");
-		if(udp_rx_receive(&nb_rec)){
-			LOG_INF("received %d characters",nb_rec);
+		struct sockaddr client_addr;
+		socklen_t client_addr_len = sizeof(client_addr);
+		ssize_t received = recvfrom(sock, recv_buf,sizeof(recv_buf), 0,&client_addr, &client_addr_len);
+		if (received < 0) {
+			NET_ERR("UDP: Connection error %d", errno);
+		}else{
+			recv_buf[received] = '\0';
+			LOG_INF("received %d characters: %s\n",received,recv_buf);
 		}
 
-		LOG_INF("udp rx sleeping 10 sec");
-		k_sleep(K_MSEC(10000));
+		ssize_t ret = sendto(sock, recv_buf, received, 0, &client_addr, client_addr_len);
+		if (ret < 0) {
+			NET_ERR("UDP: Failed to send %d", errno);
+			ret = -errno;
+		}
+
 	}
 }
