@@ -19,7 +19,9 @@ LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 	"udp echo server\n\r"
 
 void json_endpoint_handler(std::string &client, std::string &topic, json &request, json &response){
-
+	LOG_INF("json_endpoint_handler()");
+	response = request;
+	response["result"] = "OK";
 }
 
 int main(void)

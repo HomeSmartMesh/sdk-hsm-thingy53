@@ -33,6 +33,24 @@ static json_endpoint_handler_t m_json_endpoint_handler = NULL;
 json request;
 json response;
 
+bool safe_json_topic_paload_parse(std::string &payload, std::string &topic, json &request, std::string &error){
+	size_t json_begin = payload.find("{");
+	if(json_begin == std::string::npos){
+		error = "topic::parse error no json map start found '{'";
+		LOG_ERR("%s",error.c_str());
+		return false;
+	}
+	topic = payload.substr(0,json_begin);
+	std::string json_body = payload.substr(json_begin);
+	try{
+		request = json::parse(json_body);
+	}catch(json::parse_error& ex){
+		error = "json::parse threw an exception at byte " + std::to_string(ex.byte);
+		LOG_ERR("%s",error.c_str());
+		return false;
+	}
+	return true;
+}
 
 int start_udp(void)
 {
@@ -93,16 +111,22 @@ void udp_rx_handler(){
 			NET_ERR("UDP: Connection error %d", errno);
 		}else{
 			recv_buf[received] = '\0';
-			LOG_INF("received %d characters: %s\n",received,recv_buf);
+			LOG_INF("udp_rx_handler> received %d characters: %s\n",received,recv_buf);
 		}
 
 		if(m_json_endpoint_handler != NULL){
+			ssize_t ret;
 			std::string payload(recv_buf,received);
-			std::string client = "client";
-			std::string topic = "topic";
-			m_json_endpoint_handler(client, topic, request, response);
-
-			ssize_t ret = sendto(sock, recv_buf, received, 0, &client_addr, client_addr_len);
+			std::string client,topic,error;
+			bool valid = safe_json_topic_paload_parse(payload, topic, request, error);
+			if(valid){
+				response = "{}"_json;
+				m_json_endpoint_handler(client, topic, request, response);
+				std::string resp_text = topic+response.dump();
+				ret = sendto(sock, resp_text.c_str(), resp_text.length(), 0, &client_addr, client_addr_len);
+			}else{
+				ret = sendto(sock, error.c_str(), error.length(), 0, &client_addr, client_addr_len);
+			}
 			if (ret < 0) {
 				NET_ERR("UDP: Failed to send %d", errno);
 				ret = -errno;
