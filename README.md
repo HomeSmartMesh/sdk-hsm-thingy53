@@ -87,7 +87,7 @@ cd thingy53/hsm/samples/11_openthread_shell
 >west build
 ```
 
-## 12_ot_udp
+## 12_ot_udp_client
 * using a fixed openthread network config allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
 * loops sending alive counter messages as thread udp packets
 * `overlay-logging.conf` uses RTT and USB log for openthread state and loop count
