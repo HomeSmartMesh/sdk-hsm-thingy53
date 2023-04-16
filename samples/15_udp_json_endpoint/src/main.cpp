@@ -7,7 +7,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
-#include "udp_server.h"
+#include "json_endpoint.h"
 #include "app_ot.h"
 
 LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
@@ -18,11 +18,17 @@ LOG_MODULE_REGISTER(cli_sample, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 	"OpenThread main()\n\r" \
 	"udp echo server\n\r"
 
+void json_endpoint_handler(std::string &client, std::string &topic, json &request, json &response){
+
+}
+
 int main(void)
 {
 	LOG_INF(WELLCOME_TEXT);
 
 	app_ot_init();//logs joiner info and initializes reset buttons
+
+	set_endpoint_handler(json_endpoint_handler);
 
 	int count = 0;
 	while(1){

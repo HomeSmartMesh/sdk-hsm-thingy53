@@ -12,5 +12,7 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(openthread_cli)
 
+zephyr_include_directories(include)
+
 FILE(GLOB app_sources src/*.c src/*.cpp)
 target_sources(app PRIVATE ${app_sources})

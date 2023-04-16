@@ -5,6 +5,10 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include <string>
+
+#include "json_endpoint.h"
+
 LOG_MODULE_REGISTER(udp_client, LOG_LEVEL_INF);
 
 #define CONFIG_PEER_PORT 4242
@@ -25,6 +29,9 @@ K_THREAD_DEFINE(	udp_rx_thread, UDP_RX_STACK_SIZE, udp_rx_handler, NULL, NULL, N
 #define RECV_BUF_SIZE 1280
 static char recv_buf[RECV_BUF_SIZE];
 
+static json_endpoint_handler_t m_json_endpoint_handler = NULL;
+json request;
+json response;
 
 
 int start_udp(void)
@@ -89,11 +96,24 @@ void udp_rx_handler(){
 			LOG_INF("received %d characters: %s\n",received,recv_buf);
 		}
 
-		ssize_t ret = sendto(sock, recv_buf, received, 0, &client_addr, client_addr_len);
-		if (ret < 0) {
-			NET_ERR("UDP: Failed to send %d", errno);
-			ret = -errno;
+		if(m_json_endpoint_handler != NULL){
+			std::string payload(recv_buf,received);
+			std::string client = "client";
+			std::string topic = "topic";
+			m_json_endpoint_handler(client, topic, request, response);
+
+			ssize_t ret = sendto(sock, recv_buf, received, 0, &client_addr, client_addr_len);
+			if (ret < 0) {
+				NET_ERR("UDP: Failed to send %d", errno);
+				ret = -errno;
+			}
 		}
 
+
 	}
+}
+
+void set_endpoint_handler(json_endpoint_handler_t handler)
+{
+	m_json_endpoint_handler = handler;
 }
