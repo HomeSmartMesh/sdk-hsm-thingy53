@@ -5,4 +5,4 @@
 #
 
 zephyr_library()
-zephyr_library_sources_ifdef(CONFIG_JSON_ENDPOINT json_endpoint.c)
+zephyr_library_sources_ifdef(CONFIG_JSON_ENDPOINT json_endpoint.cpp)

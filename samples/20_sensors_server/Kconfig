@@ -11,3 +11,6 @@ endmenu
 module = SONSORS_SERVER
 module-str = sensor_server
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
+
+config SONSORS_SERVER_LOW_POWER
+	bool "Enable low power mode for the CLI sample"

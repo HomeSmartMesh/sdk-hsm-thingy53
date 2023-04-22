@@ -7,10 +7,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <stdio.h>
-//#include "json_endpoint.h"
-//#include "app_ot.h"
-//#include "app_led.h"
-//#include "udp_broadcast.h"
+#include "json_endpoint.h"
+#include "app_ot.h"
+#include "app_led.h"
+#include "udp_broadcast.h"
 
 LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 

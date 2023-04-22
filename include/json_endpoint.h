@@ -3,6 +3,7 @@
 #define __JSON_ENDPOINT_H__
 
 #include <stdint.h>
+#include <string>
 
 #ifdef __cplusplus
 
