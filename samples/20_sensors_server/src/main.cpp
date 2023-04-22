@@ -10,15 +10,14 @@
 #include "json_endpoint.h"
 #include "app_ot.h"
 #include "app_led.h"
+#include "app_battery.h"
 #include "udp_broadcast.h"
+#include <json.hpp>
+using json = nlohmann::json;
 
 LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 
-#define WELLCOME_TEXT \
-	"\n\r"\
-	"\n\r"\
-	"main()\n\r" \
-	"sesnors server sample\n\r"
+json data;
 
 void json_endpoint_handler(std::string &client, std::string &topic, json &request, json &response){
 	LOG_INF("json_endpoint_handler()");
@@ -28,22 +27,32 @@ void json_endpoint_handler(std::string &client, std::string &topic, json &reques
 
 int main(void)
 {
-	LOG_INF(WELLCOME_TEXT);
+	LOG_INF(R"(
+	main()
+	sensors server sample
+	)");
 
 	app_ot_init();//logs joiner info and initializes reset buttons
 	app_led_init();
+	app_battery_init();
 	set_endpoint_handler(json_endpoint_handler);
 
 	app_led_blink_green(0.1,500,1000);
 
 	int count = 0;
 	while(1){
-		uint8_t message[250];
-		int size = sprintf((char*)message,"thread_thingy_53/{\"alive\":%d}",count);
-		send_udp(message, size);
-		count++;
+		data["alive"] = count++;
 
-		LOG_INF("sleeping 10 sec count = %d",count);
+		int32_t voltage = app_battery_voltage_mv();
+		bool is_charging = app_battery_charging();
+		data["battery"]["mv"] = voltage;
+		data["battery"]["charging"] = is_charging;
+
+		std::string message = "thingy_53/"+data.dump();
+		send_udp(message);
+
+		LOG_INF("%s",data.dump(4).c_str());
+		LOG_INF("sleeping 10 sec");
 		k_sleep(K_MSEC(10000));
 	}
 }

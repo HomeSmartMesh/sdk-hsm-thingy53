@@ -9,11 +9,8 @@
 #include <hal/nrf_saadc.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/gpio.h>
-#include <zephyr/logging/log.h>
-#include "app_battery.h"
+#include <zephyr/sys/printk.h>
 #include <stdio.h>
-
-LOG_MODULE_DECLARE(app_battery);
 
 #define VBATT DT_PATH(vbatt)
 #define ZEPHYR_USER DT_PATH(zephyr_user)
@@ -37,24 +34,24 @@ int app_battery_init()
 	int err = 0;
 
 	if (!device_is_ready(sPowerGpio.port)) {
-		LOG_ERR("Battery measurement GPIO device not ready");
+		printk("Battery measurement GPIO device not ready");
 		return -ENODEV;
 	}
 
 	err += gpio_pin_configure_dt(&sPowerGpio, GPIO_OUTPUT_INACTIVE);
 	if (err != 0) {
-		LOG_ERR("Failed to configure battery measurement GPIO %d", err);
+		printk("Failed to configure battery measurement GPIO %d", err);
 		return err;
 	}
 
 	if (!device_is_ready(sAdc.dev)) {
-		LOG_ERR("ADC controller not ready");
+		printk("ADC controller not ready");
 		return -ENODEV;
 	}
 
 	err += adc_channel_setup_dt(&sAdc);
 	if (err) {
-		LOG_ERR("Setting up the ADC channel failed");
+		printk("Setting up the ADC channel failed");
 		return err;
 	}
 
@@ -62,17 +59,17 @@ int app_battery_init()
 
     err += gpio_pin_set_dt(&sPowerGpio, 1);
     if (err != 0) {
-        LOG_ERR("Failed to enable measurement pin %d", err);
+        printk("Failed to enable measurement pin %d", err);
     }
 
 	if (!device_is_ready(sChargeGpio.port)) {
-		LOG_ERR("Charge GPIO controller not ready");
+		printk("Charge GPIO controller not ready");
 		return -ENODEV;
 	}
 
 	err += gpio_pin_configure_dt(&sChargeGpio, GPIO_INPUT);
 	if (err != 0) {
-		LOG_ERR("Failed to configure battery charge GPIO %d", err);
+		printk("Failed to configure battery charge GPIO %d", err);
 		return err;
 	}
 
@@ -88,7 +85,7 @@ int32_t app_battery_voltage_mv()
         adc_raw_to_millivolts_dt(&sAdc, &val);
         result = (int32_t)((int64_t)(val) * sFullOhms / sOutputOhms);
     }else{
-        LOG_ERR("ADC Fail = %d\n",ret);
+        printk("ADC Fail = %d\n",ret);
     }
 	return result;
 }

@@ -17,8 +17,9 @@ cd thingy53
 ```
 ## building a sample
 ```bash
->cd hsm/samples/12_openthread_alive
->west build
+cd hsm/samples/12_openthread_alive
+west build
+west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
 ## flashing
 flashing using an attached debugger
@@ -122,13 +123,13 @@ Note on joining:
 * the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
 * without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
-# 14_ot_udp_echo_server
+## 14_ot_udp_echo_server
 * separate `udp_rx_handler` thread
 * binds to port 4242 and echoes back received characters (printed as text)
 
-# 15_udp_json_endpoint
+## 15_udp_json_endpoint
 
-# 20_sensors_server
+## 20_sensors_server
 
 on rasp
 ```shell
@@ -137,12 +138,10 @@ udp open
 udp send ff02::1 4242 hi_there_now
 ```
 
-# Updates
+# Plan
 * MQTT publish sample
 * reliable ot tx rx, e.g. tcp, websocket, session,... for packet request response
-* main cpp and json for structured request response
-* adopt url pattern (instead of mqtt topic) for endpoints
-* Python MQTT Translator for request response with json bodies (no CoAP)
+* Python MQTT Translator for request response with json bodies
 * RGB Led notification service
 * sensors json logger service (configurable sensors and rates)
 * ot lifecycle, if not connected, restart after timeout, which will retry join

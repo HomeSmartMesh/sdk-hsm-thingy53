@@ -3,10 +3,16 @@
 
 #include <stdint.h>
 
-int app_battery_init(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+int app_battery_init(void);
 int app_battery_voltage_mv();
 bool app_battery_charging();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__APP_BATTERY_H__*/
