@@ -6,11 +6,11 @@
 
 LOG_MODULE_REGISTER(udp_broadcast, LOG_LEVEL_INF);
 
-static bool udp_started = false;
+static bool udp_bcast_started = false;
 
-#define CONFIG_PEER_PORT 4242
+#define CONFIG_PEER_PORT 4141
 #if !defined(CONFIG_NET_CONFIG_PEER_IPV6_ADDR)
-#define CONFIG_NET_CONFIG_PEER_IPV6_ADDR "ff02::1"
+#define CONFIG_NET_CONFIG_PEER_IPV6_ADDR "ff03::1"
 #endif
 #define INVALID_SOCK (-1)
 
@@ -21,7 +21,7 @@ int start_udp(void)
 	int ret = 0;
 	struct sockaddr_in6 addr6;
 
-	LOG_INF("CONFIG_NET_IPV6");
+	LOG_INF("start_udp() CONFIG_NET_IPV6");
 	addr6.sin6_family = AF_INET6;
 	addr6.sin6_port = htons(CONFIG_PEER_PORT);
 	inet_pton(AF_INET6, CONFIG_NET_CONFIG_PEER_IPV6_ADDR,&addr6.sin6_addr);
@@ -45,14 +45,17 @@ int start_udp(void)
 
 int send_udp(uint8_t * data, uint8_t size)
 {
-    if(!udp_started){
+    if(!udp_bcast_started){
         start_udp();
-	    udp_started = true;
+	    udp_bcast_started = true;
     }
 
 	int ret;
 
 	ret = send(sock, data, size, 0);
+	if(ret < 0){
+		LOG_ERR("could not send : %d", ret);
+	}
 
 	LOG_DBG("UDP: Sent %d bytes", size);
 

@@ -17,8 +17,8 @@ LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 #define WELLCOME_TEXT \
 	"\n\r"\
 	"\n\r"\
-	"OpenThread main()\n\r" \
-	"udp echo server\n\r"
+	"main()\n\r" \
+	"sesnors server sample\n\r"
 
 void json_endpoint_handler(std::string &client, std::string &topic, json &request, json &response){
 	LOG_INF("json_endpoint_handler()");

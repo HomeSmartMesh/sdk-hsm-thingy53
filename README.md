@@ -126,6 +126,16 @@ Note on joining:
 * separate `udp_rx_handler` thread
 * binds to port 4242 and echoes back received characters (printed as text)
 
+# 15_udp_json_endpoint
+
+# 20_sensors_server
+
+on rasp
+```shell
+>sudo ot-ctl
+udp open
+udp send ff02::1 4242 hi_there_now
+```
 
 # Updates
 * MQTT publish sample
