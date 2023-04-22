@@ -21,11 +21,35 @@ LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 
 json data;
 const struct device *sensor_dev_bh1749;
+const struct device *sensor_dev_bme680;
+
+void bme680_init(){
+	sensor_dev_bme680 = DEVICE_DT_GET_ONE(bosch_bme680);
+	if (!device_is_ready(sensor_dev_bme680)) {
+		printk("Sensor device bme680 not ready\n");
+		return;
+	}
+}
+
+void bme680_get_values(float &temp, float &press, float& hum, float& gas){
+	struct sensor_value sensor;
+
+	sensor_sample_fetch(sensor_dev_bme680);
+	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_AMBIENT_TEMP, &sensor);
+	temp  = sensor.val1 + sensor.val2 / 1000000;
+	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_PRESS, &sensor);
+	press = sensor.val1 + sensor.val2 / 1000000;
+	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_HUMIDITY, &sensor);
+	hum   = sensor.val1 + sensor.val2 / 1000000;
+	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_GAS_RES, &sensor);
+	gas   = sensor.val1 + sensor.val2 / 1000000;
+
+}
 
 void bh1749_init(){
 	sensor_dev_bh1749 = DEVICE_DT_GET_ONE(rohm_bh1749);
 	if (!device_is_ready(sensor_dev_bh1749)) {
-		printk("Sensor device not ready\n");
+		printk("Sensor device bh1749 not ready\n");
 		return;
 	}
 }
@@ -86,6 +110,7 @@ int main(void)
 	app_led_init();
 	app_battery_init();
 	bh1749_init();
+	bme680_init();
 	set_endpoint_handler(json_endpoint_handler);
 
 	app_led_blink_green(0.1,500,1000);
@@ -107,6 +132,14 @@ int main(void)
 		data["light"]["g"] = g;
 		data["light"]["b"] = b;
 		data["light"]["ir"] = ir;
+
+		//environment
+		float temp, press, hum, gas;
+		bme680_get_values(temp, press, hum, gas);
+		data["env"]["temp"] = temp;
+		data["env"]["press"] = press;
+		data["env"]["hum"] = hum;
+		data["env"]["gas"] = gas;
 
 		std::string message = "thingy_53/"+data.dump();
 		send_udp(message);
