@@ -5,10 +5,7 @@
 #include <zephyr/sys/util.h>
 #include <zephyr/sys/printk.h>
 #include <inttypes.h>
-#include <zephyr/logging/log.h>
 #include "app_button.h"
-
-LOG_MODULE_REGISTER(cli_button, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 
 #define SW0_NODE	DT_ALIAS(sw0)
 #if !DT_NODE_HAS_STATUS(SW0_NODE, okay)
@@ -60,11 +57,11 @@ void button_interrupt(const struct device *dev, struct gpio_callback *cb, uint32
 		triggered = false;
 		booting = false;
 		k_work_reschedule(&long_press_work, LONG_PRESS_TIMEOUT);
-		LOG_INF("Button pressed at %" PRIi64, press_time);
+		printk("Button pressed at %" PRIi64, press_time);
 	}
 	else{//released
 		if(booting){
-			LOG_INF("Button released after boot");
+			printk("Button released after boot");
 			booting = false;
 		}
 		else{
@@ -75,7 +72,7 @@ void button_interrupt(const struct device *dev, struct gpio_callback *cb, uint32
 						button_short_press();
 					}
 				}else{
-					LOG_INF("Button released after %" PRIi64 " ms - not short, not long", time);
+					printk("Button released after %" PRIi64 " ms - not short, not long", time);
 				}
 				k_work_cancel_delayable(&long_press_work);
 			}//else triggered, nothing to do, release after trigger
@@ -87,19 +84,19 @@ int app_button_init(void){
 	int ret;
 
 	if (!device_is_ready(button.port)) {
-		LOG_ERR("Error: button device %s is not ready\n",button.port->name);
+		printk("Error: button device %s is not ready\n",button.port->name);
 		return ENODEV;
 	}
 
 	ret = gpio_pin_configure_dt(&button, GPIO_INPUT);
 	if (ret != 0) {
-		LOG_ERR("Error %d: failed to configure %s pin %d\n",ret, button.port->name, button.pin);
+		printk("Error %d: failed to configure %s pin %d\n",ret, button.port->name, button.pin);
 		return ret;
 	}
 
 	ret = gpio_pin_interrupt_configure_dt(&button,GPIO_INT_EDGE_BOTH);
 	if (ret != 0) {
-		LOG_ERR("Error %d: failed to configure interrupt on %s pin %d\n",ret, button.port->name, button.pin);
+		printk("Error %d: failed to configure interrupt on %s pin %d\n",ret, button.port->name, button.pin);
 		return ret;
 	}
 
@@ -111,7 +108,7 @@ int app_button_init(void){
 
 	gpio_init_callback(&button_cb_data, button_interrupt, BIT(button.pin));
 	gpio_add_callback(button.port, &button_cb_data);
-	LOG_INF("Set up button at %s pin %d", button.port->name, button.pin);
+	printk("Set up button at %s pin %d", button.port->name, button.pin);
 
 	return ret;
 }

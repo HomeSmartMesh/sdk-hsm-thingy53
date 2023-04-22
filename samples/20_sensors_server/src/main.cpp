@@ -31,15 +31,15 @@ int main(void)
 	LOG_INF(WELLCOME_TEXT);
 
 	app_ot_init();//logs joiner info and initializes reset buttons
-	app_leds_init();
+	app_led_init();
 	set_endpoint_handler(json_endpoint_handler);
 
 	app_led_blink_green(0.1,500,1000);
 
 	int count = 0;
 	while(1){
-		char message[250];
-		int size = sprintf(message,"thread_thingy_53/{\"alive\":%d}",count);
+		uint8_t message[250];
+		int size = sprintf((char*)message,"thread_thingy_53/{\"alive\":%d}",count);
 		send_udp(message, size);
 		count++;
 

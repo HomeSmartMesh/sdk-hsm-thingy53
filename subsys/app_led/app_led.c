@@ -53,7 +53,6 @@ int app_led_set_blue(float brightness){
 }
 
 int app_led_set_color(float r,float g, float b){
-	int ret = 0;
     uint32_t red = r * PWM_PERIOD;
     uint32_t green = g * PWM_PERIOD;
     uint32_t blue = b * PWM_PERIOD;
@@ -108,7 +107,7 @@ int app_led_blink_color(float r,float g, float b,int32_t up,int32_t down){
 }
 
 
-int app_leds_init(void){
+int app_led_init(void){
     init_led(red_pwm_led);
     init_led(green_pwm_led);
     init_led(blue_pwm_led);

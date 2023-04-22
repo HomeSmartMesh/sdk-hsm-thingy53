@@ -4,9 +4,9 @@
 #include <zephyr/net/socket.h>
 #include <stdio.h>
 
-LOG_MODULE_REGISTER(udp_client, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(udp_broadcast, LOG_LEVEL_INF);
 
-bool udp_started = false;
+static bool udp_started = false;
 
 #define CONFIG_PEER_PORT 4242
 #if !defined(CONFIG_NET_CONFIG_PEER_IPV6_ADDR)

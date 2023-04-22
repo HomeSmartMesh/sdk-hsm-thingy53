@@ -1,5 +1,4 @@
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/reboot.h>
@@ -10,8 +9,6 @@
 
 #include "app_button.h"
 #include "app_ot.h"
-
-LOG_MODULE_REGISTER(ot_app, CONFIG_OT_COMMAND_LINE_INTERFACE_LOG_LEVEL);
 
 otInstance* instance;
 #if defined(CONFIG_OPENTHREAD_JOINER_PSKD)
@@ -51,9 +48,9 @@ int app_ot_init(void){
 
 	char eui64[17];
 	get_eui64(eui64);
-	LOG_INF("Joiner eui64: %s ; pskd: %s\n",eui64,OT_JOINER_PSKD);
-	LOG_INF("qrcode: v=1&&eui=%s&&cc=%s\n",eui64,OT_JOINER_PSKD);
-	LOG_INF("https://dhrishi.github.io/connectedhomeip/qrcode.html?data=v%%3D1%%26%%26eui%%3D%s%%26%%26cc%%3D%s\n",eui64,OT_JOINER_PSKD);
+	printk("Joiner eui64: %s ; pskd: %s\n",eui64,OT_JOINER_PSKD);
+	printk("qrcode: v=1&&eui=%s&&cc=%s\n",eui64,OT_JOINER_PSKD);
+	printk("https://dhrishi.github.io/connectedhomeip/qrcode.html?data=v%%3D1%%26%%26eui%%3D%s%%26%%26cc%%3D%s\n",eui64,OT_JOINER_PSKD);
 
 	return 0;
 }

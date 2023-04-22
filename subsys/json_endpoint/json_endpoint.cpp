@@ -9,13 +9,13 @@
 
 #include "json_endpoint.h"
 
-LOG_MODULE_REGISTER(udp_client, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(json_endpoint, LOG_LEVEL_INF);
 
 #define CONFIG_PEER_PORT 4242
 #define INVALID_SOCK (-1)
 
-bool udp_started = false;
-int sock = INVALID_SOCK;
+static bool udp_started = false;
+static int sock = INVALID_SOCK;
 
 #define UDP_RX_STACK_SIZE 8192
 #define UDP_RX_PRIORITY 20
