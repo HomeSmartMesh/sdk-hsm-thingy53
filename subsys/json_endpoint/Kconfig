@@ -1,0 +1,7 @@
+menuconfig JSON_ENDPOINT
+	bool "JSON udp API endpoint"
+	default n
+	depends on CPLUSPLUS
+	depends on EXCEPTIONS
+	help
+	  Enable handler for receiving JSON and sending response back.

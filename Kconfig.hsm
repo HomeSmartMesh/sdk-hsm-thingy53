@@ -2,5 +2,6 @@
 menu "Home Smart Mesh"
 
 rsource "samples/Kconfig"
+rsource "subsys/Kconfig"
 
 endmenu

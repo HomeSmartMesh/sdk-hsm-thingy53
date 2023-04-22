@@ -1,0 +1,11 @@
+#
+# Copyright (c) 2018 - 2020 Nordic Semiconductor
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+rsource "app_battery/Kconfig"
+rsource "app_led/Kconfig"
+rsource "app_ot/Kconfig"
+rsource "json_endpoint/Kconfig"
+rsource "udp_broadast/Kconfig"

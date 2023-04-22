@@ -1,0 +1,6 @@
+menuconfig UDP_BROADCAST
+	bool "UDP send in braodcast config"
+	default n
+	depends on NET_SOCKETS
+	help
+	  Enable Application to broadcast UDP packets

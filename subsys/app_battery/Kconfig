@@ -1,0 +1,8 @@
+menuconfig APP_BATTERY
+	bool "Application battery sensor API"
+	default n
+	depends on GPIO
+	depends on PWM
+	depends on ADC
+	help
+	  Enable Application battery sensor API.
