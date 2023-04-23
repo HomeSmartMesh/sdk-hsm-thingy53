@@ -36,13 +36,13 @@ void bme680_get_values(float &temp, float &press, float& hum, float& gas){
 
 	sensor_sample_fetch(sensor_dev_bme680);
 	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_AMBIENT_TEMP, &sensor);
-	temp  = sensor.val1 + sensor.val2 / 1000000;
+	temp  = sensor.val1 + sensor.val2 / 1000000.0;
 	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_PRESS, &sensor);
-	press = sensor.val1 + sensor.val2 / 1000000;
+	press  = sensor.val1 + sensor.val2 / 1000000.0;
 	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_HUMIDITY, &sensor);
-	hum   = sensor.val1 + sensor.val2 / 1000000;
+	hum  = sensor.val1 + sensor.val2 / 1000000.0;
 	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_GAS_RES, &sensor);
-	gas   = sensor.val1 + sensor.val2 / 1000000;
+	gas  = sensor.val1 + sensor.val2 / 1000000.0;
 
 }
 
