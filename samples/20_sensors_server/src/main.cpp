@@ -117,31 +117,32 @@ int main(void)
 
 	int count = 0;
 	while(1){
+		app_led_blink_blue(0.1,100,0);
 		data["alive"] = count++;
 
 		//battery
 		int32_t voltage = app_battery_voltage_mv();
 		bool is_charging = app_battery_charging();
-		data["battery"]["mv"] = voltage;
-		data["battery"]["charging"] = is_charging;
+		data["voltage"] = voltage;
+		data["charging"] = is_charging;
 
 		//light
 		int32_t r,g,b,ir;
 		bh1749_get_values(r,g,b,ir);
-		data["light"]["r"] = r;
-		data["light"]["g"] = g;
-		data["light"]["b"] = b;
-		data["light"]["ir"] = ir;
+		data["light_red"] = r;
+		data["light_green"] = g;
+		data["light_blue"] = b;
+		data["light_ir"] = ir;
 
 		//environment
 		float temp, press, hum, gas;
 		bme680_get_values(temp, press, hum, gas);
-		data["env"]["temp"] = temp;
-		data["env"]["press"] = press;
-		data["env"]["hum"] = hum;
-		data["env"]["gas"] = gas;
+		data["temperature"] = temp;
+		data["pressure"] = press;
+		data["humidity"] = hum;
+		data["gas"] = gas;
 
-		std::string message = "thingy_53/"+data.dump();
+		std::string message = "thread_tags/thingy_53"+data.dump();
 		send_udp(message);
 
 		LOG_INF("%s",message.c_str());
