@@ -9,7 +9,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 
-#include "bme68x.h"
+#include "common.h"
 
 void main(void)
 {
@@ -17,8 +17,18 @@ void main(void)
 	k_sleep(K_MSEC(5000));
 	printf("Test sample\n");
 
-	struct bme68x_dev dev;
-	bme68x_init(&dev);
+	const struct device *const dev = DEVICE_DT_GET_ONE(bosch_bme688);
+
+	if (!device_is_ready(dev)) {
+		printk("sensor: device not ready.\n");
+		return;
+	}
+
+	printf("Device %p name is %s\n", dev, dev->name);
+
+
+
+	bme68x_interface_init();
 
 	int count = 0;
 	while (1) {

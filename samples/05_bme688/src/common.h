@@ -11,6 +11,18 @@ extern "C" {
 #include "bme68x.h"
 
 /*!
+ *  @brief Function to select the interface between SPI and I2C.
+ *
+ *  @param[in] bme      : Structure instance of bme68x_dev
+ *  @param[in] intf     : Interface selection parameter
+ *
+ *  @return Status of execution
+ *  @retval 0 -> Success
+ *  @retval < 0 -> Failure Info
+ */
+int8_t bme68x_interface_init();
+
+/*!
  *  @brief Function for reading the sensor's registers through I2C bus.
  *
  *  @param[in] reg_addr     : Register address.
