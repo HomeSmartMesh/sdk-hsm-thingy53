@@ -11,18 +11,6 @@ extern "C" {
 #include "bme68x.h"
 
 /*!
- *  @brief Function to select the interface between SPI and I2C.
- *
- *  @param[in] bme      : Structure instance of bme68x_dev
- *  @param[in] intf     : Interface selection parameter
- *
- *  @return Status of execution
- *  @retval 0 -> Success
- *  @retval < 0 -> Failure Info
- */
-int8_t bme68x_interface_init(struct bme68x_dev *bme, uint8_t intf);
-
-/*!
  *  @brief Function for reading the sensor's registers through I2C bus.
  *
  *  @param[in] reg_addr     : Register address.
@@ -103,13 +91,6 @@ void bme68x_delay_us(uint32_t period, void *intf_ptr);
  *  @return void.
  */
 void bme68x_check_rslt(const char api_name[], int8_t rslt);
-
-/*!
- *  @brief Deinitializes coines platform
- *
- *  @return void.
- */
-void bme68x_coines_deinit(void);
 
 #ifdef __cplusplus
 }

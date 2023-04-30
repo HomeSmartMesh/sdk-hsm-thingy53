@@ -13,5 +13,6 @@ project(bme680)
 FILE(GLOB app_sources src/*.c)
 target_sources(app PRIVATE ${app_sources})
 
-add_subdirectory(BME68x-Sensor-API)
-zephyr_include_directories(BME68x-Sensor-API)
+add_subdirectory(src/BME68x-Sensor-API)
+zephyr_include_directories(src/BME68x-Sensor-API)
+
