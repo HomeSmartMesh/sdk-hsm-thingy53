@@ -56,20 +56,22 @@ used pios
 * Battery charging Indicator CHG PMIC_STATUS P1.00 `battery-charge-gpios` in `app.overlay`
 
 ## 04_BME680
-* Although the board is equipped with BM688, this sample only uses the common features with the default [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
-* this samples runs as is without modifications on the thingy53 board thanks to the proper device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts`
-* the sensor used is the [Bosch-sensortec BME680](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/) used for
+
+* BME688 Digital low power gas, pressure, temperature & humidity sensor with AI
+    * [BME688 Product page](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme688/)
+    * [BME688 Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme688-ds000.pdf)
+
+Note : using BME680 driver for BME688 can only fetch temp,hum,press but not gas due to difference in registers config
+
+* this sample is based on [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
+* this samples uses the device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts`
+* [Bosch-sensortec BME680](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/) used for
     * Temperature
     * Air pressure
     * Humidity
-    * Air quality Gas Sensor
 
-output log
-```
-Device 0x20002b74 name is BME680
-T: 23.988877; P: 97.648568; H: 53.689533; G: 1035.211466
-T: 24.168500; P: 97.648866; H: 53.565966; G: 1046.677896
-```
+* register redefine : https://devzone.nordicsemi.com/f/nordic-q-a/98569/gas-resistance-values-from-bme688-on-thingy-53
+
 
 ## 05_bh1749
 * Color sensor BH1749NUC
