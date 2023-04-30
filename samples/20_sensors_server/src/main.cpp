@@ -117,14 +117,7 @@ int main(void)
 
 	int count = 0;
 	while(1){
-		app_led_blink_blue(0.1,100,0);
 		data["alive"] = count++;
-
-		//battery
-		int32_t voltage = app_battery_voltage_mv();
-		bool is_charging = app_battery_charging();
-		data["voltage"] = voltage;
-		data["charging"] = is_charging;
 
 		//light
 		int32_t r,g,b,ir;
@@ -133,6 +126,13 @@ int main(void)
 		data["light_green"] = g;
 		data["light_blue"] = b;
 		data["light_ir"] = ir;
+
+		//battery
+		int32_t voltage = app_battery_voltage_mv();
+		bool is_charging = app_battery_charging();
+		data["voltage"] = voltage;
+		data["charging"] = is_charging;
+
 
 		//environment
 		float temp, press, hum, gas;
@@ -146,6 +146,9 @@ int main(void)
 		send_udp(message);
 
 		LOG_INF("%s",message.c_str());
+
+		app_led_blink_blue(0.08,100,0);
+
 		LOG_INF("sleeping 10 sec");
 		k_sleep(K_MSEC(10000));
 	}
