@@ -55,7 +55,7 @@ used pios
 * Battery Measure BAT_MEAS P0.06/AIN2 `vbatt.io-channels` in `thingy53_nrf5340_common.dts`
 * Battery charging Indicator CHG PMIC_STATUS P1.00 `battery-charge-gpios` in `app.overlay`
 
-## 04_BME680
+## 04_bme680
 
 * BME688 Digital low power gas, pressure, temperature & humidity sensor with AI
     * [BME688 Product page](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme688/)
@@ -72,8 +72,18 @@ Note : using BME680 driver for BME688 can only fetch temp,hum,press but not gas 
 
 * register redefine : https://devzone.nordicsemi.com/f/nordic-q-a/98569/gas-resistance-values-from-bme688-on-thingy-53
 
+## 05_bme688
+* this sample includes the supplier driver https://github.com/boschsensortec/BME68x-Sensor-API
+* it is wrapped over the Zephyr's Sensor API
 
-## 05_bh1749
+```shell
+del_period = 142590
+Temperature(deg C), Pressure(Pa), Humidity(%), Gas resistance(ohm)
+25.24, 95917.63, 40.48, 23992.50
+new data , no Gas Index , Gas Meas Valid , Heat Stability
+```
+
+## 06_bh1749
 * Color sensor BH1749NUC
     * [BH1749NUC Datasheet](https://fscdn.rohm.com/en/products/databook/datasheet/ic/sensor/light/bh1749nuc-e.pdf)
     * Measures Red, Green, Blue and IR
