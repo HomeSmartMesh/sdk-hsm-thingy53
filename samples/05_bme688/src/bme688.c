@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 #include "bme68x.h"
-#include "common.h"
+#include "bme688.h"
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/i2c.h>
@@ -28,6 +28,9 @@
 /******************************************************************************/
 /*!                Static variable definition                                 */
 static struct bme68x_dev bme_api_dev;
+static struct bme68x_conf conf;
+static struct bme68x_heatr_conf heatr_conf;
+static struct bme68x_data data;
 
 /******************************************************************************/
 /*!                User interface functions                                   */
@@ -45,13 +48,13 @@ BME68X_INTF_RET_TYPE bme68x_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32
         printf("bme68x_i2c_read timeout\n");
 		return 1;
 	}
-    else{
-        printf("\nbme68x_i2c_read success @0x%0x: ",reg_addr);
-        for(int i=0;i<len;i++){
-            printf("%0x ",reg_data[i]);
-        }
-        printf("\n");
-    }
+    //else{
+    //    printf("\nbme68x_i2c_read success @0x%0x: ",reg_addr);
+    //    for(int i=0;i<len;i++){
+    //        printf("%0x ",reg_data[i]);
+    //    }
+    //    printf("\n");
+    //}
     return BME68X_INTF_RET_SUCCESS;
 }
 
@@ -111,7 +114,7 @@ void bme68x_check_rslt(const char api_name[], int8_t rslt)
     }
 }
 
-int bme68x_interface_init(const struct device *dev)
+int bme688_init(const struct device *dev)
 {
     int8_t rslt = BME68X_OK;
 
@@ -122,18 +125,66 @@ int bme68x_interface_init(const struct device *dev)
     bme_api_dev.intf_ptr = dev;
     bme_api_dev.amb_temp = 25; /* The ambient temperature in deg C is used for defining the heater temperature */
 
-    bme68x_init(&bme_api_dev);
+    rslt = bme68x_init(&bme_api_dev);
+    bme68x_check_rslt("bme68x_init",rslt);
 
     return (int)rslt;
 }
 
 static int bme680_sample_fetch(const struct device *dev,enum sensor_channel chan)
 {
+    int8_t rslt = BME68X_OK;
+
+    conf.filter = BME68X_FILTER_OFF;
+    conf.odr = BME68X_ODR_NONE;
+    conf.os_hum = BME68X_OS_16X;
+    conf.os_pres = BME68X_OS_1X;
+    conf.os_temp = BME68X_OS_2X;
+    rslt = bme68x_set_conf(&conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_conf",rslt);
+
+    heatr_conf.enable = BME68X_ENABLE;
+    heatr_conf.heatr_temp = 300;
+    heatr_conf.heatr_dur = 100;
+    rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
+
 	return 0;
 }
 
 static int bme680_channel_get(const struct device *dev,enum sensor_channel chan,struct sensor_value *val)
 {
+    int8_t rslt = BME68X_OK;
+
+    rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_op_mode",rslt);
+
+    const uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
+    printf("del_period = %u\n",del_period);
+    k_sleep(K_USEC(del_period));
+
+    uint8_t n_fields;
+    rslt = bme68x_get_data(BME68X_FORCED_MODE, &data, &n_fields, &bme_api_dev);
+    bme68x_check_rslt("bme68x_get_data",rslt);
+
+    if (n_fields)
+    {
+        printf("Temperature(deg C), Pressure(Pa), Humidity(%%), Gas resistance(ohm)\n");
+        printf("%.2f, %.2f, %.2f, %.2f\n",
+                data.temperature,
+                data.pressure,
+                data.humidity,
+                data.gas_resistance);
+        printf("%s , %s , %s , %s\n",
+            (data.status&BME68X_NEW_DATA_MSK)?"new data":"no new data",
+            (data.status&BME68X_GAS_INDEX_MSK)?"Gas Index":"no Gas Index",
+            (data.status&BME68X_GASM_VALID_MSK)?"Gas Meas Valid":" Gas Meas not valid",
+            (data.status&BME68X_HEAT_STAB_MSK)?"Heat Stability":"no Heat Stability"
+            );
+    }else{
+        printf("n_fields = %d\n",n_fields);
+    }
+
 	return 0;
 }
 
@@ -156,7 +207,7 @@ static const struct sensor_driver_api bme688_api_funcs = {
 	static struct bme68x_data bme68x_data_##inst;			                            \
 	static const struct bme688_config bme688_config_##inst = BME688_CONFIG_I2C(inst);   \
 	SENSOR_DEVICE_DT_INST_DEFINE(inst,				                                    \
-			 bme68x_interface_init,					                                    \
+			 bme688_init,					                                    \
 			 NULL,						                                                \
 			 &bme68x_data_##inst,				                                        \
 			 &bme688_config_##inst,				                                        \

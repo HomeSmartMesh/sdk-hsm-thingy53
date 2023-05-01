@@ -12,10 +12,9 @@ set(DTC_OVERLAY_FILE app.overlay)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(bme680)
 
-#FILE(GLOB app_sources src/*.c)
 target_sources(app PRIVATE 
     src/main.c
-    src/common.c
+    src/bme688.c
 )
 
 add_subdirectory(src/BME68x-Sensor-API)

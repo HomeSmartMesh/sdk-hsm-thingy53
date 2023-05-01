@@ -9,7 +9,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 
-#include "common.h"
+#include "bme688.h"
 
 void main(void)
 {
@@ -24,13 +24,17 @@ void main(void)
 	}
 	printf("Sensor device %p name is %s\n", dev, dev->name);
 
-	bme68x_interface_init(dev);
-
+	bme688_init(dev);
+	k_sleep(K_MSEC(3000));
 	int count = 0;
 	while (1) {
-		k_sleep(K_MSEC(3000));
-
 		printf("Test: %d\n",count);
 		count++;
+
+		sensor_sample_fetch(dev);
+		struct sensor_value value;
+		sensor_channel_get(dev, SENSOR_CHAN_ALL, &value);
+
+		k_sleep(K_MSEC(20000));
 	}
 }
