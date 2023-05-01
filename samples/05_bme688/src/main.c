@@ -13,20 +13,16 @@
 
 void main(void)
 {
-	printf("Test sample\n");
-	k_sleep(K_MSEC(5000));
-	printf("Test sample\n");
+	printf("Test sample main() - debug startup helper\n");
+	k_sleep(K_MSEC(10000));
+	printf("Test sample main()\n");
 
 	const struct device *const dev = DEVICE_DT_GET_ONE(bosch_bme688);
-
 	if (!device_is_ready(dev)) {
 		printk("sensor: device not ready.\n");
 		return;
 	}
-
-	printf("Device %p name is %s\n", dev, dev->name);
-
-
+	printf("Sensor device %p name is %s\n", dev, dev->name);
 
 	bme68x_interface_init(dev);
 

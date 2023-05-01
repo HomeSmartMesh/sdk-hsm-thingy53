@@ -26,7 +26,7 @@ struct bme688_config {
  *  @retval 0 -> Success
  *  @retval < 0 -> Failure Info
  */
-int8_t bme68x_interface_init(const struct device *const dev);
+int bme68x_interface_init(const struct device * dev);
 
 /*!
  *  @brief Function for reading the sensor's registers through I2C bus.

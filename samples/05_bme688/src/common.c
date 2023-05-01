@@ -41,11 +41,16 @@ BME68X_INTF_RET_TYPE bme68x_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32
     const struct bme688_config *config = (struct bme688_config*)sensor_dev->config;
 	const struct i2c_dt_spec *i2c_dev = &config->i2c;
 
-	if (i2c_read(i2c_dev , reg_data, len, reg_addr)) {
+	if (i2c_burst_read_dt(i2c_dev, reg_addr, reg_data, len)) {
         printf("bme68x_i2c_read timeout\n");
 		return 1;
-	}else{
-        printf("bme68x_i2c_read success\n");
+	}
+    else{
+        printf("\nbme68x_i2c_read success @0x%0x: ",reg_addr);
+        for(int i=0;i<len;i++){
+            printf("%0x ",reg_data[i]);
+        }
+        printf("\n");
     }
     return BME68X_INTF_RET_SUCCESS;
 }
@@ -59,11 +64,9 @@ BME68X_INTF_RET_TYPE bme68x_i2c_write(uint8_t reg_addr, const uint8_t *reg_data,
     const struct bme688_config *config = (struct bme688_config*)sensor_dev->config;
 	const struct i2c_dt_spec *i2c_dev = &config->i2c;
 
-    if(i2c_write(i2c_dev, reg_data, len, reg_addr)){
-        printf("bme68x_i2c_write timeout\n");
+    if(i2c_burst_write_dt(i2c_dev, reg_addr, reg_data, len)){
+        printf("i2c_burst_write_dt timeout\n");
         return 1;
-    }else{
-        printf("bme68x_i2c_write success\n");
     }
     return BME68X_INTF_RET_SUCCESS;
 }
@@ -108,13 +111,10 @@ void bme68x_check_rslt(const char api_name[], int8_t rslt)
     }
 }
 
-int8_t bme68x_interface_init(const struct device *const dev)
+int bme68x_interface_init(const struct device *dev)
 {
     int8_t rslt = BME68X_OK;
 
-    printf("I2C Interface\n");
-    //i2c.bus = device_get_binding(DEVICE_DT_GET(DT_INST_BUS(1)));
-    //i2c.addr = 0x76;
     bme_api_dev.read = bme68x_i2c_read;
     bme_api_dev.write = bme68x_i2c_write;
     bme_api_dev.intf = BME68X_I2C_INTF;
@@ -124,7 +124,7 @@ int8_t bme68x_interface_init(const struct device *const dev)
 
     bme68x_init(&bme_api_dev);
 
-    return rslt;
+    return (int)rslt;
 }
 
 static int bme680_sample_fetch(const struct device *dev,enum sensor_channel chan)
