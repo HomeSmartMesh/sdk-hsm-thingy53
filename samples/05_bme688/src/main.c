@@ -28,7 +28,7 @@ void main(void)
 
 
 
-	bme68x_interface_init();
+	bme68x_interface_init(dev);
 
 	int count = 0;
 	while (1) {

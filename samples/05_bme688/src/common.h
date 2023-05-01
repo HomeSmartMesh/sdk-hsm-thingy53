@@ -9,6 +9,12 @@ extern "C" {
 #endif /*__cplusplus */
 
 #include "bme68x.h"
+#include <zephyr/drivers/i2c.h>
+
+
+struct bme688_config {
+	struct i2c_dt_spec i2c;
+};
 
 /*!
  *  @brief Function to select the interface between SPI and I2C.
@@ -20,7 +26,7 @@ extern "C" {
  *  @retval 0 -> Success
  *  @retval < 0 -> Failure Info
  */
-int8_t bme68x_interface_init();
+int8_t bme68x_interface_init(const struct device *const dev);
 
 /*!
  *  @brief Function for reading the sensor's registers through I2C bus.
