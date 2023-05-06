@@ -21,7 +21,6 @@ using json = nlohmann::json;
 
 LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 
-json data;
 const struct device *sensor_dev_bh1749;
 const struct device *sensor_dev_bme688;
 
@@ -107,6 +106,7 @@ int main(void)
 
 	int count = 0;
 	while(1){
+		json data;
 		data["alive"] = count++;
 
 		//light
@@ -128,14 +128,14 @@ int main(void)
 		struct bme68x_data bme_data;
 		bme688_sample_fetch(sensor_dev_bme688,SENSOR_CHAN_ALL);
 		if(bme688_data_get(sensor_dev_bme688, &bme_data)){
-			if(data.status &
-				BME68X_NEW_DATA_MSK & 
-				BME68X_HEAT_STAB_MSK & 
-				BME68X_GASM_VALID_MSK){
+			LOG_INF("bm688 data status = 0x%x",bme_data.status);
+			if(bme_data.status & BME68X_NEW_DATA_MSK){
 				data["temperature"] = bme_data.temperature;
 				data["pressure"] 	= bme_data.pressure;
 				data["humidity"] 	= bme_data.humidity;
-				data["gas_res"] 		= bme_data.gas_resistance;
+				if((bme_data.status & BME68X_HEAT_STAB_MSK) && (bme_data.status & BME68X_GASM_VALID_MSK)){
+					data["gas_res"] 		= bme_data.gas_resistance;
+				}
 			}
 		}
 
