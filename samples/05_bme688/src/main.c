@@ -9,7 +9,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <stdio.h>
 
-#include "bme688.h"
+#include <bme688.h>
 
 void main(void)
 {
@@ -42,13 +42,13 @@ void main(void)
 					data.humidity,
 					data.gas_resistance);
 			if(!(data.status&BME68X_NEW_DATA_MSK)){
-				printf("no new data")
+				printf("no new data");
 			}
 			if(!(data.status&BME68X_GASM_VALID_MSK)){
-				printf("Gas Measure not valid")
+				printf("Gas Measure not valid");
 			}
 			if(!(data.status&BME68X_HEAT_STAB_MSK)){
-				printf("No Heat Stability")
+				printf("No Heat Stability");
 			}
 		}else{
 			printf("No new data\n");

@@ -1,0 +1,3 @@
+
+add_subdirectory_ifdef(CONFIG_BME688 bme688)
+zephyr_include_directories_ifdef(CONFIG_BME688 bme688)

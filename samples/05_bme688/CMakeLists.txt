@@ -10,12 +10,6 @@ set(BOARD thingy53_nrf5340_cpuapp)
 set(DTC_OVERLAY_FILE app.overlay)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(bme680)
+project(test_bme680)
 
-target_sources(app PRIVATE 
-    src/main.c
-    src/bme688.c
-)
-
-add_subdirectory(src/BME68x-Sensor-API)
-zephyr_include_directories(src/BME68x-Sensor-API)
+target_sources(app PRIVATE src/main.c)

@@ -1,0 +1,10 @@
+menuconfig SENSOR
+	bool "Sensor Drivers"
+	help
+		Include sensor drivers in config
+
+if SENSOR
+
+rsource "bme688/Kconfig"
+
+endif # SENSOR

@@ -1,0 +1,7 @@
+# BME688 temperature, humidity pressure and gas configuration options
+
+config BME688
+	bool "BME688 sensor"
+	depends on I2C
+	help
+	  Enable driver for BME688 I2C based temperature, pressure, humidity and gas sensor.
