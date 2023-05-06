@@ -27,10 +27,14 @@
 
 /******************************************************************************/
 /*!                Static variable definition                                 */
+
+/*                  !!! Single instance device driver !!!                     */
+
 static struct bme68x_dev bme_api_dev;
 static struct bme68x_conf conf;
 static struct bme68x_heatr_conf heatr_conf;
 static struct bme68x_data data;
+static uint8_t n_fields;
 
 /******************************************************************************/
 /*!                User interface functions                                   */
@@ -131,7 +135,7 @@ int bme688_init(const struct device *dev)
     return (int)rslt;
 }
 
-static int bme680_sample_fetch(const struct device *dev,enum sensor_channel chan)
+int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
 {
     int8_t rslt = BME68X_OK;
 
@@ -149,49 +153,75 @@ static int bme680_sample_fetch(const struct device *dev,enum sensor_channel chan
     rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
     bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
 
-	return 0;
-}
-
-static int bme680_channel_get(const struct device *dev,enum sensor_channel chan,struct sensor_value *val)
-{
-    int8_t rslt = BME68X_OK;
-
     rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
     bme68x_check_rslt("bme68x_set_op_mode",rslt);
 
     const uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
-    printf("del_period = %u\n",del_period);
+    //printf("del_period = %u\n",del_period);
     k_sleep(K_USEC(del_period));
 
-    uint8_t n_fields;
     rslt = bme68x_get_data(BME68X_FORCED_MODE, &data, &n_fields, &bme_api_dev);
     bme68x_check_rslt("bme68x_get_data",rslt);
 
-    if (n_fields)
+	return 0;
+}
+
+bool bme688_data_get(const struct device *dev, struct bme68x_data *p_data){
+    (*p_data) = data;
+    return (n_fields != 0);
+}
+
+static int bme688_channel_get(const struct device *dev,enum sensor_channel chan,struct sensor_value *val)
+{
+    if (n_fields == 0)
     {
-        printf("Temperature(deg C), Pressure(Pa), Humidity(%%), Gas resistance(ohm)\n");
-        printf("%.2f, %.2f, %.2f, %.2f\n",
-                data.temperature,
-                data.pressure,
-                data.humidity,
-                data.gas_resistance);
-        printf("%s , %s , %s , %s\n",
-            (data.status&BME68X_NEW_DATA_MSK)?"new data":"no new data",
-            (data.status&BME68X_GAS_INDEX_MSK)?"Gas Index":"no Gas Index",
-            (data.status&BME68X_GASM_VALID_MSK)?"Gas Meas Valid":" Gas Meas not valid",
-            (data.status&BME68X_HEAT_STAB_MSK)?"Heat Stability":"no Heat Stability"
-            );
-    }else{
-        printf("n_fields = %d\n",n_fields);
+        return EINPROGRESS;
     }
+
+	switch (chan) {
+	case SENSOR_CHAN_AMBIENT_TEMP:
+		/*
+		 * data.temperature has a resolution of 0.01 degC.
+		 * So 5123 equals 51.23 degC.
+		 */
+		val->val1 = (int32_t)(data.temperature / 100);
+		val->val2 = (data.temperature - val->val1 * 100) * 10000;
+		break;
+	case SENSOR_CHAN_PRESS:
+		/*
+		 * data.pressure has a resolution of 1 Pa.
+		 * So 96321 equals 96.321 kPa.
+		 */
+		val->val1 = (int32_t)(data.pressure / 1000);
+		val->val2 = (data.pressure - val->val1 * 1000) * 1000;
+		break;
+	case SENSOR_CHAN_HUMIDITY:
+		/*
+		 * data.humidity has a resolution of 0.001 %RH.
+		 * So 46333 equals 46.333 %RH.
+		 */
+		val->val1 = (int32_t)(data.humidity / 1000);
+		val->val2 = (data.humidity - val->val1 * 1000) * 1000;
+		break;
+	case SENSOR_CHAN_GAS_RES:
+		/*
+		 * data.gas_resistance has a resolution of 1 ohm.
+		 * So 100000 equals 100000 ohms.
+		 */
+		val->val1 = data.gas_resistance;
+		val->val2 = 0;
+		break;
+	default:
+		return -EINVAL;
+	}
 
 	return 0;
 }
 
 
 static const struct sensor_driver_api bme688_api_funcs = {
-	.sample_fetch = bme680_sample_fetch,
-	.channel_get = bme680_channel_get,
+	.sample_fetch = bme688_sample_fetch,
+	.channel_get = bme688_channel_get,
 };
 
 #define DT_DRV_COMPAT bosch_bme688

@@ -10,6 +10,7 @@ extern "C" {
 
 #include "bme68x.h"
 #include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/sensor.h>
 
 
 struct bme688_config {
@@ -27,6 +28,9 @@ struct bme688_config {
  *  @retval < 0 -> Failure Info
  */
 int bme688_init(const struct device * dev);
+
+int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);
+bool bme688_data_get(const struct device *dev, struct bme68x_data *data);
 
 /*!
  *  @brief Function for reading the sensor's registers through I2C bus.
