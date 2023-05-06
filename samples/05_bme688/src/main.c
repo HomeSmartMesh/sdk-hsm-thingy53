@@ -7,9 +7,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
-#include <stdio.h>
-
 #include <bme688.h>
+#include <stdio.h>
 
 void main(void)
 {
@@ -28,7 +27,7 @@ void main(void)
 	k_sleep(K_MSEC(3000));
 	int count = 0;
 	while (1) {
-		printf("Test: %d\n",count);
+		printf("Test: %d : ",count);
 		count++;
 
 		//bme688 API usage, sensor_sample_fetch and sensor_channel_get also available

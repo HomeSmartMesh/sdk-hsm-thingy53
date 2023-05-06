@@ -15,38 +15,28 @@
 #include <json.hpp>
 #include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
+#include <bme688.h>
+
 using json = nlohmann::json;
 
 LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 
 json data;
 const struct device *sensor_dev_bh1749;
-const struct device *sensor_dev_bme680;
+const struct device *sensor_dev_bme688;
 
-void bme680_init(){
-	sensor_dev_bme680 = DEVICE_DT_GET_ONE(bosch_bme680);
-	if (!device_is_ready(sensor_dev_bme680)) {
-		printk("Sensor device bme680 not ready\n");
+void app_bme688_init(){
+	const struct device *const sensor_dev_bme688 = DEVICE_DT_GET_ONE(bosch_bme688);
+	if (!device_is_ready(sensor_dev_bme688)) {
+		printk("sensor: device not ready.\n");
 		return;
 	}
+	printf("Sensor device %p name is %s\n", sensor_dev_bme688, sensor_dev_bme688->name);
+	
+	bme688_init(sensor_dev_bme688);
 }
 
-void bme680_get_values(float &temp, float &press, float& hum, float& gas){
-	struct sensor_value sensor;
-
-	sensor_sample_fetch(sensor_dev_bme680);
-	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_AMBIENT_TEMP, &sensor);
-	temp  = sensor.val1 + sensor.val2 / 1000000.0;
-	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_PRESS, &sensor);
-	press  = sensor.val1 + sensor.val2 / 1000000.0;
-	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_HUMIDITY, &sensor);
-	hum  = sensor.val1 + sensor.val2 / 1000000.0;
-	sensor_channel_get(sensor_dev_bme680, SENSOR_CHAN_GAS_RES, &sensor);
-	gas  = sensor.val1 + sensor.val2 / 1000000.0;
-
-}
-
-void bh1749_init(){
+void app_bh1749_init(){
 	sensor_dev_bh1749 = DEVICE_DT_GET_ONE(rohm_bh1749);
 	if (!device_is_ready(sensor_dev_bh1749)) {
 		printk("Sensor device bh1749 not ready\n");
@@ -109,8 +99,8 @@ int main(void)
 	app_ot_init();//logs joiner info and initializes reset buttons
 	app_led_init();
 	app_battery_init();
-	bh1749_init();
-	bme680_init();
+	app_bh1749_init();
+	app_bme688_init();
 	set_endpoint_handler(json_endpoint_handler);
 
 	app_led_blink_green(0.1,500,1000);
@@ -135,12 +125,19 @@ int main(void)
 
 
 		//environment
-		float temp, press, hum, gas;
-		bme680_get_values(temp, press, hum, gas);
-		data["temperature"] = temp;
-		data["pressure"] = press;
-		data["humidity"] = hum;
-		data["gas"] = gas;
+		struct bme68x_data bme_data;
+		bme688_sample_fetch(sensor_dev_bme688,SENSOR_CHAN_ALL);
+		if(bme688_data_get(sensor_dev_bme688, &bme_data)){
+			if(data.status &
+				BME68X_NEW_DATA_MSK & 
+				BME68X_HEAT_STAB_MSK & 
+				BME68X_GASM_VALID_MSK){
+				data["temperature"] = bme_data.temperature;
+				data["pressure"] 	= bme_data.pressure;
+				data["humidity"] 	= bme_data.humidity;
+				data["gas_res"] 		= bme_data.gas_resistance;
+			}
+		}
 
 		std::string message = "thread_tags/thingy_53"+data.dump();
 		send_udp(message);
