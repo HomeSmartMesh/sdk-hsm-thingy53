@@ -33,8 +33,11 @@
 static struct bme68x_dev bme_api_dev;
 static struct bme68x_conf conf;
 static struct bme68x_heatr_conf heatr_conf;
-static struct bme68x_data data;
+static struct bme68x_data data[10];
 static uint8_t n_fields;
+mode_t mode = single;
+uint16_t temp_prof[10] = { 320, 100, 100, 100, 200, 200, 200, 320, 320, 320 };
+uint16_t mul_prof[10] = { 5, 2, 10, 30, 5, 5, 5, 5, 5, 5 };
 
 /******************************************************************************/
 /*!                User interface functions                                   */
@@ -135,8 +138,17 @@ int bme688_init(const struct device *dev)
     return (int)rslt;
 }
 
-int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
+void bme688_set_mode_single()
 {
+    mode = single;
+}
+
+void bme688_set_mode_multi()
+{
+    mode = multi;
+}
+
+int bme688_sample_fetch_single(){
     int8_t rslt = BME68X_OK;
 
     conf.filter = BME68X_FILTER_OFF;
@@ -155,20 +167,64 @@ int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
 
     rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
     bme68x_check_rslt("bme68x_set_op_mode",rslt);
-
-    const uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
+    uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
     //printf("del_period = %u\n",del_period);
     k_sleep(K_USEC(del_period));
 
-    rslt = bme68x_get_data(BME68X_FORCED_MODE, &data, &n_fields, &bme_api_dev);
+    rslt = bme68x_get_data(BME68X_FORCED_MODE, data, &n_fields, &bme_api_dev);
     bme68x_check_rslt("bme68x_get_data",rslt);
-
-	return 0;
+    return 0;
 }
 
-bool bme688_data_get(const struct device *dev, struct bme68x_data *p_data){
-    (*p_data) = data;
-    return (n_fields != 0);
+int bme688_sample_fetch_multi(){
+    int8_t rslt = BME68X_OK;
+
+    conf.filter = BME68X_FILTER_OFF;
+    conf.odr = BME68X_ODR_NONE;
+    conf.os_hum = BME68X_OS_1X;
+    conf.os_pres = BME68X_OS_16X;
+    conf.os_temp = BME68X_OS_2X;
+    rslt = bme68x_set_conf(&conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_conf",rslt);
+    heatr_conf.enable = BME68X_ENABLE;
+    heatr_conf.heatr_temp_prof = temp_prof;
+    heatr_conf.heatr_dur_prof = mul_prof;
+    heatr_conf.shared_heatr_dur = 140 - (bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &conf, &bme_api_dev) / 1000);
+    heatr_conf.profile_len = 10;
+    rslt = bme68x_set_heatr_conf(BME68X_PARALLEL_MODE, &heatr_conf, &bme_api_dev);
+    bme68x_check_rslt("bme68x_set_heatr_conf", rslt);
+    rslt = bme68x_set_op_mode(BME68X_PARALLEL_MODE, &bme_api_dev);
+    bme68x_check_rslt("bme68x_set_op_mode", rslt);
+    uint32_t del_period = bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &conf, &bme_api_dev) + (heatr_conf.shared_heatr_dur * 1000);
+    //printf("del_period = %u\n",del_period);
+    k_sleep(K_USEC(del_period));
+
+    rslt = bme68x_get_data(BME68X_PARALLEL_MODE, data, &n_fields, &bme_api_dev);
+    bme68x_check_rslt("bme68x_get_data",rslt);
+    return 0;
+}
+
+int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
+{
+    int8_t rslt = BME68X_OK;
+
+    switch(mode){
+        case single:
+            bme688_sample_fetch_single();
+        break;
+        case multi:
+            bme688_sample_fetch_multi();
+        break;
+        default:
+        break;
+    }
+
+	return rslt;
+}
+
+uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *p_data){
+    p_data = data;
+    return n_fields;
 }
 
 static int bme688_channel_get(const struct device *dev,enum sensor_channel chan,struct sensor_value *val)
@@ -181,34 +237,34 @@ static int bme688_channel_get(const struct device *dev,enum sensor_channel chan,
 	switch (chan) {
 	case SENSOR_CHAN_AMBIENT_TEMP:
 		/*
-		 * data.temperature has a resolution of 0.01 degC.
+		 * data[0].temperature has a resolution of 0.01 degC.
 		 * So 5123 equals 51.23 degC.
 		 */
-		val->val1 = (int32_t)(data.temperature / 100);
-		val->val2 = (data.temperature - val->val1 * 100) * 10000;
+		val->val1 = (int32_t)(data[0].temperature / 100);
+		val->val2 = (data[0].temperature - val->val1 * 100) * 10000;
 		break;
 	case SENSOR_CHAN_PRESS:
 		/*
-		 * data.pressure has a resolution of 1 Pa.
+		 * data[0].pressure has a resolution of 1 Pa.
 		 * So 96321 equals 96.321 kPa.
 		 */
-		val->val1 = (int32_t)(data.pressure / 1000);
-		val->val2 = (data.pressure - val->val1 * 1000) * 1000;
+		val->val1 = (int32_t)(data[0].pressure / 1000);
+		val->val2 = (data[0].pressure - val->val1 * 1000) * 1000;
 		break;
 	case SENSOR_CHAN_HUMIDITY:
 		/*
-		 * data.humidity has a resolution of 0.001 %RH.
+		 * data[0].humidity has a resolution of 0.001 %RH.
 		 * So 46333 equals 46.333 %RH.
 		 */
-		val->val1 = (int32_t)(data.humidity / 1000);
-		val->val2 = (data.humidity - val->val1 * 1000) * 1000;
+		val->val1 = (int32_t)(data[0].humidity / 1000);
+		val->val2 = (data[0].humidity - val->val1 * 1000) * 1000;
 		break;
 	case SENSOR_CHAN_GAS_RES:
 		/*
-		 * data.gas_resistance has a resolution of 1 ohm.
+		 * data[0].gas_resistance has a resolution of 1 ohm.
 		 * So 100000 equals 100000 ohms.
 		 */
-		val->val1 = data.gas_resistance;
+		val->val1 = data[0].gas_resistance;
 		val->val2 = 0;
 		break;
 	default:

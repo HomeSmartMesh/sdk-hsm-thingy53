@@ -12,6 +12,11 @@ extern "C" {
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/sensor.h>
 
+#define BME68X_VALID_DATA (BME68X_NEW_DATA_MSK|BME68X_GASM_VALID_MSK|BME68X_HEAT_STAB_MSK)
+typedef enum{
+	single = 0x01,
+	multi = 0x02
+} mode_t;
 
 struct bme688_config {
 	struct i2c_dt_spec i2c;
@@ -29,8 +34,11 @@ struct bme688_config {
  */
 int bme688_init(const struct device * dev);
 
+void bme688_set_mode_single();
+void bme688_set_mode_multi();
+
 int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);
-bool bme688_data_get(const struct device *dev, struct bme68x_data *data);
+uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *data);
 
 /*!
  *  @brief Function for reading the sensor's registers through I2C bus.
