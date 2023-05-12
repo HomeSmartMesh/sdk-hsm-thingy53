@@ -38,6 +38,7 @@ static uint8_t n_fields;
 mode_t mode = single;
 uint16_t temp_prof[10] = { 320, 100, 100, 100, 200, 200, 200, 320, 320, 320 };
 uint16_t mul_prof[10] = { 5, 2, 10, 30, 5, 5, 5, 5, 5, 5 };
+uint16_t dur_prof[10] = { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
 
 /******************************************************************************/
 /*!                User interface functions                                   */
@@ -73,10 +74,22 @@ BME68X_INTF_RET_TYPE bme68x_i2c_write(uint8_t reg_addr, const uint8_t *reg_data,
     const struct device *const sensor_dev = (struct device*)intf_ptr;
     const struct bme688_config *config = (struct bme688_config*)sensor_dev->config;
 	const struct i2c_dt_spec *i2c_dev = &config->i2c;
-
-    if(i2c_burst_write_dt(i2c_dev, reg_addr, reg_data, len)){
-        printf("i2c_burst_write_dt timeout\n");
-        return 1;
+    //printf("burst writing @ 0x%x len=%d\n",reg_addr,len);
+    //WA fix timeout error for bursts > 10
+    if(len<10){
+        if(i2c_burst_write_dt(i2c_dev, reg_addr, reg_data, len)){
+            printf("i2c_burst_write_dt timeout\n");
+            return 1;
+        }
+    }else{
+        if(i2c_burst_write_dt(i2c_dev, reg_addr, reg_data, 10)){
+            printf("i2c_burst_write_dt timeout\n");
+            return 1;
+        }
+        if(i2c_burst_write_dt(i2c_dev, reg_addr+10, reg_data+10, len-10)){
+            printf("i2c_burst_write_dt timeout\n");
+            return 1;
+        }
     }
     return BME68X_INTF_RET_SUCCESS;
 }
@@ -138,46 +151,11 @@ int bme688_init(const struct device *dev)
     return (int)rslt;
 }
 
-void bme688_set_mode_single()
+void bme688_set_mode_parallel()
 {
-    mode = single;
-}
-
-void bme688_set_mode_multi()
-{
-    mode = multi;
-}
-
-int bme688_sample_fetch_single(){
     int8_t rslt = BME68X_OK;
 
-    conf.filter = BME68X_FILTER_OFF;
-    conf.odr = BME68X_ODR_NONE;
-    conf.os_hum = BME68X_OS_16X;
-    conf.os_pres = BME68X_OS_1X;
-    conf.os_temp = BME68X_OS_2X;
-    rslt = bme68x_set_conf(&conf,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_conf",rslt);
-
-    heatr_conf.enable = BME68X_ENABLE;
-    heatr_conf.heatr_temp = 300;
-    heatr_conf.heatr_dur = 100;
-    rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
-
-    rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_op_mode",rslt);
-    uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
-    //printf("del_period = %u\n",del_period);
-    k_sleep(K_USEC(del_period));
-
-    rslt = bme68x_get_data(BME68X_FORCED_MODE, data, &n_fields, &bme_api_dev);
-    bme68x_check_rslt("bme68x_get_data",rslt);
-    return 0;
-}
-
-int bme688_sample_fetch_multi(){
-    int8_t rslt = BME68X_OK;
+    mode = parallel;
 
     conf.filter = BME68X_FILTER_OFF;
     conf.odr = BME68X_ODR_NONE;
@@ -195,12 +173,93 @@ int bme688_sample_fetch_multi(){
     bme68x_check_rslt("bme68x_set_heatr_conf", rslt);
     rslt = bme68x_set_op_mode(BME68X_PARALLEL_MODE, &bme_api_dev);
     bme68x_check_rslt("bme68x_set_op_mode", rslt);
+
+}
+
+void bme688_set_mode_sequencial(){
+    int8_t rslt = BME68X_OK;
+
+    mode = sequencial;
+
+    conf.filter = BME68X_FILTER_OFF;
+    conf.odr = BME68X_ODR_NONE; /* This parameter defines the sleep duration after each profile */
+    conf.os_hum = BME68X_OS_16X;
+    conf.os_pres = BME68X_OS_1X;
+    conf.os_temp = BME68X_OS_2X;
+    rslt = bme68x_set_conf(&conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_conf",rslt);
+    heatr_conf.enable = BME68X_ENABLE;
+    heatr_conf.heatr_temp_prof = temp_prof;
+    heatr_conf.heatr_dur_prof = dur_prof;
+    heatr_conf.profile_len = 10;
+    rslt = bme68x_set_heatr_conf(BME68X_SEQUENTIAL_MODE, &heatr_conf, &bme_api_dev);
+    bme68x_check_rslt("bme68x_set_heatr_conf", rslt);
+    rslt = bme68x_set_op_mode(BME68X_SEQUENTIAL_MODE, &bme_api_dev);
+    bme68x_check_rslt("bme68x_set_op_mode", rslt);
+}
+
+void bme688_set_mode(mode_t v_mode)
+{
+    mode = v_mode;
+
+    switch(v_mode){
+        case single:
+        break;
+        case parallel:
+            bme688_set_mode_parallel();
+        break;
+        case sequencial:
+            bme688_set_mode_sequencial();
+        break;
+        default:
+        break;
+    }
+}
+
+int bme688_sample_fetch_single(){
+    int8_t rslt = BME68X_OK;
+
+    mode = single;
+
+    conf.filter = BME68X_FILTER_OFF;
+    conf.odr = BME68X_ODR_NONE;
+    conf.os_hum = BME68X_OS_16X;
+    conf.os_pres = BME68X_OS_1X;
+    conf.os_temp = BME68X_OS_2X;
+    rslt = bme68x_set_conf(&conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_conf",rslt);
+
+    heatr_conf.enable = BME68X_ENABLE;
+    heatr_conf.heatr_temp = 300;
+    heatr_conf.heatr_dur = 100;
+    rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
+
+    rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_op_mode",rslt);
+
+    uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
+    //printf("del_period = %u\n",del_period);
+    k_sleep(K_USEC(del_period));
+
+    return 0;
+}
+
+int bme688_sample_fetch_parallel(){
+
     uint32_t del_period = bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &conf, &bme_api_dev) + (heatr_conf.shared_heatr_dur * 1000);
     //printf("del_period = %u\n",del_period);
     k_sleep(K_USEC(del_period));
 
-    rslt = bme68x_get_data(BME68X_PARALLEL_MODE, data, &n_fields, &bme_api_dev);
-    bme68x_check_rslt("bme68x_get_data",rslt);
+    return 0;
+}
+
+int bme688_sample_fetch_sequencial(){
+
+    uint32_t del_period = bme68x_get_meas_dur(BME68X_SEQUENTIAL_MODE, &conf, &bme_api_dev) + (heatr_conf.shared_heatr_dur * 1000);
+    //printf("del_period = %u\n",del_period);
+    k_sleep(K_USEC(del_period));
+
     return 0;
 }
 
@@ -212,8 +271,11 @@ int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
         case single:
             bme688_sample_fetch_single();
         break;
-        case multi:
-            bme688_sample_fetch_multi();
+        case parallel:
+            bme688_sample_fetch_parallel();
+        break;
+        case sequencial:
+            bme688_sample_fetch_sequencial();
         break;
         default:
         break;
@@ -223,7 +285,27 @@ int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
 }
 
 uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *p_data){
-    p_data = data;
+    int8_t rslt = BME68X_OK;
+    switch(mode){
+        case single:
+            rslt = bme68x_get_data(BME68X_FORCED_MODE, data, &n_fields, &bme_api_dev);
+            bme68x_check_rslt("bme68x_get_data",rslt);
+        break;
+        case parallel:
+            rslt = bme68x_get_data(BME68X_PARALLEL_MODE, data, &n_fields, &bme_api_dev);
+            bme68x_check_rslt("bme68x_get_data",rslt);
+        break;
+        case sequencial:
+            rslt = bme68x_get_data(BME68X_SEQUENTIAL_MODE, data, &n_fields, &bme_api_dev);
+            bme68x_check_rslt("bme68x_get_data",rslt);
+        break;
+        default:
+        break;
+    }
+
+    for(uint8_t i = 0; i < n_fields; i++){
+        p_data[i] = data[i];
+    }
     return n_fields;
 }
 

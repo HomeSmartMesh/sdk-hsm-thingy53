@@ -15,7 +15,8 @@ extern "C" {
 #define BME68X_VALID_DATA (BME68X_NEW_DATA_MSK|BME68X_GASM_VALID_MSK|BME68X_HEAT_STAB_MSK)
 typedef enum{
 	single = 0x01,
-	multi = 0x02
+	parallel = 0x02,
+	sequencial = 0x03
 } mode_t;
 
 struct bme688_config {
@@ -34,8 +35,7 @@ struct bme688_config {
  */
 int bme688_init(const struct device * dev);
 
-void bme688_set_mode_single();
-void bme688_set_mode_multi();
+void bme688_set_mode(mode_t v_mode);
 
 int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);
 uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *data);
