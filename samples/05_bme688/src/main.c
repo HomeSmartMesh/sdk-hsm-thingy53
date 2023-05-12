@@ -24,7 +24,7 @@ void main(void)
 	printf("Sensor device %p name is %s\n", dev, dev->name);
 
 	bme688_init(dev);
-	mode_t mode = parallel;//single, parallel, sequencial
+	bme688_mode_t mode = parallel;//single, parallel, sequencial
 	bme688_set_mode(mode);
 	k_sleep(K_MSEC(3000));
 	int sample_count = 1;

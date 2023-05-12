@@ -17,7 +17,7 @@ typedef enum{
 	single = 0x01,
 	parallel = 0x02,
 	sequencial = 0x03
-} mode_t;
+} bme688_mode_t;
 
 struct bme688_config {
 	struct i2c_dt_spec i2c;
@@ -35,7 +35,7 @@ struct bme688_config {
  */
 int bme688_init(const struct device * dev);
 
-void bme688_set_mode(mode_t v_mode);
+void bme688_set_mode(bme688_mode_t v_mode);
 
 int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);
 uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *data);

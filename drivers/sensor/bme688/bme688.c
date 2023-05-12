@@ -198,7 +198,7 @@ void bme688_set_mode_sequencial(){
     bme68x_check_rslt("bme68x_set_op_mode", rslt);
 }
 
-void bme688_set_mode(mode_t v_mode)
+void bme688_set_mode(bme688_mode_t v_mode)
 {
     mode = v_mode;
 
