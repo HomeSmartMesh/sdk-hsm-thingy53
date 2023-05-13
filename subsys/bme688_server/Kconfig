@@ -1,0 +1,7 @@
+menuconfig BME688_SERVER
+	bool "BME688 server"
+	default n
+	depends on CPLUSPLUS
+	depends on EXCEPTIONS
+	help
+	  Enable a thread to collect bme688 gas samples.

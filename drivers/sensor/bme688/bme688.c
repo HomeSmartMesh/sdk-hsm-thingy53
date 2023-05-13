@@ -35,7 +35,7 @@ static struct bme68x_conf conf;
 static struct bme68x_heatr_conf heatr_conf;
 static struct bme68x_data data[10];
 static uint8_t n_fields;
-mode_t mode = single;
+bme688_mode_t mode = bme688_mode_forced;
 uint16_t temp_prof[10] = { 320, 100, 100, 100, 200, 200, 200, 320, 320, 320 };
 uint16_t mul_prof[10] = { 5, 2, 10, 30, 5, 5, 5, 5, 5, 5 };
 uint16_t dur_prof[10] = { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
@@ -155,7 +155,7 @@ void bme688_set_mode_parallel()
 {
     int8_t rslt = BME68X_OK;
 
-    mode = parallel;
+    mode = bme688_mode_parallel;
 
     conf.filter = BME68X_FILTER_OFF;
     conf.odr = BME68X_ODR_NONE;
@@ -179,7 +179,7 @@ void bme688_set_mode_parallel()
 void bme688_set_mode_sequencial(){
     int8_t rslt = BME68X_OK;
 
-    mode = sequencial;
+    mode = bme688_mode_sequencial;
 
     conf.filter = BME68X_FILTER_OFF;
     conf.odr = BME68X_ODR_NONE; /* This parameter defines the sleep duration after each profile */
@@ -203,12 +203,12 @@ void bme688_set_mode(bme688_mode_t v_mode)
     mode = v_mode;
 
     switch(v_mode){
-        case single:
+        case bme688_mode_forced:
         break;
-        case parallel:
+        case bme688_mode_parallel:
             bme688_set_mode_parallel();
         break;
-        case sequencial:
+        case bme688_mode_sequencial:
             bme688_set_mode_sequencial();
         break;
         default:
@@ -216,10 +216,10 @@ void bme688_set_mode(bme688_mode_t v_mode)
     }
 }
 
-int bme688_sample_fetch_single(){
+int bme688_sample_fetch_forced(){
     int8_t rslt = BME68X_OK;
 
-    mode = single;
+    mode = bme688_mode_forced;
 
     conf.filter = BME68X_FILTER_OFF;
     conf.odr = BME68X_ODR_NONE;
@@ -268,13 +268,13 @@ int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
     int8_t rslt = BME68X_OK;
 
     switch(mode){
-        case single:
-            bme688_sample_fetch_single();
+        case bme688_mode_forced:
+            bme688_sample_fetch_forced();
         break;
-        case parallel:
+        case bme688_mode_parallel:
             bme688_sample_fetch_parallel();
         break;
-        case sequencial:
+        case bme688_mode_sequencial:
             bme688_sample_fetch_sequencial();
         break;
         default:
@@ -287,15 +287,15 @@ int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
 uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *p_data){
     int8_t rslt = BME68X_OK;
     switch(mode){
-        case single:
+        case bme688_mode_forced:
             rslt = bme68x_get_data(BME68X_FORCED_MODE, data, &n_fields, &bme_api_dev);
             bme68x_check_rslt("bme68x_get_data",rslt);
         break;
-        case parallel:
+        case bme688_mode_parallel:
             rslt = bme68x_get_data(BME68X_PARALLEL_MODE, data, &n_fields, &bme_api_dev);
             bme68x_check_rslt("bme68x_get_data",rslt);
         break;
-        case sequencial:
+        case bme688_mode_sequencial:
             rslt = bme68x_get_data(BME68X_SEQUENTIAL_MODE, data, &n_fields, &bme_api_dev);
             bme68x_check_rslt("bme68x_get_data",rslt);
         break;

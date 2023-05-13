@@ -24,31 +24,26 @@ void main(void)
 	printf("Sensor device %p name is %s\n", dev, dev->name);
 
 	bme688_init(dev);
-	bme688_mode_t mode = parallel;//single, parallel, sequencial
-	bme688_set_mode(mode);
+	printf("default bme688 mode is Forced Mode\n");
 	k_sleep(K_MSEC(3000));
 	int sample_count = 1;
-	printf("Sample count, meas index, gas index, Temperature(deg C), Pressure(Pa), Humidity(%%), Gas resistance(ohm)\n");
+	printf("Sample count, Temperature(deg C), Pressure(Pa), Humidity(%%), Gas resistance(ohm)\n");
 	while (1) {
 		//bme688 API usage, sensor_sample_fetch and sensor_channel_get also available
 		bme688_sample_fetch(dev,SENSOR_CHAN_ALL);
-		struct bme68x_data data[10];
+		struct bme68x_data data[3];//max 3, but only 1 expected
 		uint8_t n_fields = bme688_data_get(dev, data);
-		if(n_fields != 0){
-			for(uint8_t i = 0; i < n_fields; i++){
-				if (data[i].status == BME68X_VALID_DATA){
-					printf("%d, %u, %d, %.2f, %.2f, %.2f, %.2f\n",
-						sample_count,
-						data[i].meas_index,
-						data[i].gas_index,
-						data[i].temperature,
-						data[i].pressure,
-						data[i].humidity,
-						data[i].gas_resistance);
-					sample_count++;
-				}
+		if(n_fields == 1){//only 1 expected in Forced mode
+			if (data[0].status == BME68X_VALID_DATA){
+				printf("%d, %.2f, %.2f, %.2f, %.2f\n",
+					sample_count,
+					data[0].temperature,
+					data[0].pressure,
+					data[0].humidity,
+					data[0].gas_resistance);
+				sample_count++;
 			}
 		}
-		//no sleep as sample fetch do the sleep
+		k_sleep(K_MSEC(10000));
 	}
 }

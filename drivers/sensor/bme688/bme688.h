@@ -14,9 +14,9 @@ extern "C" {
 
 #define BME68X_VALID_DATA (BME68X_NEW_DATA_MSK|BME68X_GASM_VALID_MSK|BME68X_HEAT_STAB_MSK)
 typedef enum{
-	single = 0x01,
-	parallel = 0x02,
-	sequencial = 0x03
+	bme688_mode_forced = 0x01,
+	bme688_mode_parallel = 0x02,
+	bme688_mode_sequencial = 0x03
 } bme688_mode_t;
 
 struct bme688_config {
