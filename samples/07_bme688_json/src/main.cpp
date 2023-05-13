@@ -9,29 +9,37 @@
 #include "bme688_server.h"
 #include <string>
 
-json config = {
-  {"mode", "parallel"},
-  {"heater", true},
-};
+json config =  R"(
+  {
+    "temperatures": [320, 100, 100, 100, 200, 200, 200, 320, 320, 320],
+    "durations": [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+  }
+)"_json;
+
+std::string text;
 
 void bme688_handler(json &data){
-	std::string text = data.dump();
-	printf("bme688_handler> %s\n",text.c_str());
+	text = data.dump(4);
+	printf(" - bme688_handler> %s\n",text.c_str());
 }
 
 int main(void)
 {
-	printf("Test bme688 server app - early debug wait connection\n");
+	printf(" - Test bme688 server app - early debug wait connection\n");
 	k_sleep(K_MSEC(10000));
-	printf("Test bme688 server app - start\n");
+	printf(" - Test bme688 server app - start\n");
+	printf(" - setting heater config: ");
+	text = config.dump(4);
+	printf("%s\n",text.c_str());
 
 	set_bme688_config(config);
-
 	set_bme688_handler(bme688_handler);
+	k_sleep(K_MSEC(3000));
+
 	uint32_t count = 0;
 	while (1) {
-		printf("loop %d main sleeping 10 sec\n",count++);
-		k_sleep(K_MSEC(10000));
+		printf(" - loop %d main sleeping 30 sec\n",count++);
+		k_sleep(K_MSEC(30000));
 	}
 	return 0;
 }

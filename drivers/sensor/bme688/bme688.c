@@ -39,6 +39,7 @@ bme688_mode_t mode = bme688_mode_forced;
 uint16_t temp_prof[10] = { 320, 100, 100, 100, 200, 200, 200, 320, 320, 320 };
 uint16_t mul_prof[10] = { 5, 2, 10, 30, 5, 5, 5, 5, 5, 5 };
 uint16_t dur_prof[10] = { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
+uint8_t nb_steps = 10;
 
 /******************************************************************************/
 /*!                User interface functions                                   */
@@ -151,6 +152,25 @@ int bme688_init(const struct device *dev)
     return (int)rslt;
 }
 
+void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t v_nb_steps){
+    nb_steps = v_nb_steps;
+    for(uint8_t i=0;i<nb_steps;i++){
+        temp_prof[i] = temperatures[i];
+        dur_prof[i] = durations[i];
+    }
+    printf("bme688 driver>")
+    printf("nb_steps:%u\n",nb_steps);
+    printf("temp_prof:");
+    for(int i=0;i<nb_steps;i++){
+        printf("%u ",temp_prof[i]);
+    }
+    printf("\ndur_prof:");
+    for(int i=0;i<nb_steps;i++){
+        printf("%u ",dur_prof[i]);
+    }
+    printf("\n");
+}
+
 void bme688_set_mode_parallel()
 {
     int8_t rslt = BME68X_OK;
@@ -168,7 +188,7 @@ void bme688_set_mode_parallel()
     heatr_conf.heatr_temp_prof = temp_prof;
     heatr_conf.heatr_dur_prof = mul_prof;
     heatr_conf.shared_heatr_dur = 140 - (bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &conf, &bme_api_dev) / 1000);
-    heatr_conf.profile_len = 10;
+    heatr_conf.profile_len = nb_steps;
     rslt = bme68x_set_heatr_conf(BME68X_PARALLEL_MODE, &heatr_conf, &bme_api_dev);
     bme68x_check_rslt("bme68x_set_heatr_conf", rslt);
     rslt = bme68x_set_op_mode(BME68X_PARALLEL_MODE, &bme_api_dev);
@@ -191,7 +211,7 @@ void bme688_set_mode_sequencial(){
     heatr_conf.enable = BME68X_ENABLE;
     heatr_conf.heatr_temp_prof = temp_prof;
     heatr_conf.heatr_dur_prof = dur_prof;
-    heatr_conf.profile_len = 10;
+    heatr_conf.profile_len = nb_steps;
     rslt = bme68x_set_heatr_conf(BME68X_SEQUENTIAL_MODE, &heatr_conf, &bme_api_dev);
     bme68x_check_rslt("bme68x_set_heatr_conf", rslt);
     rslt = bme68x_set_op_mode(BME68X_SEQUENTIAL_MODE, &bme_api_dev);

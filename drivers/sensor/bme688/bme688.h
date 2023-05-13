@@ -35,6 +35,7 @@ struct bme688_config {
  */
 int bme688_init(const struct device * dev);
 
+void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t v_nb_steps);
 void bme688_set_mode(bme688_mode_t v_mode);
 
 int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);
