@@ -158,7 +158,7 @@ void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t
         temp_prof[i] = temperatures[i];
         dur_prof[i] = durations[i];
     }
-    printf("bme688 driver>")
+    printf("bme688 driver>");
     printf("nb_steps:%u\n",nb_steps);
     printf("temp_prof:");
     for(int i=0;i<nb_steps;i++){
