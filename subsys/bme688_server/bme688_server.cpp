@@ -75,8 +75,8 @@ void bme688_service(){
 	//#define BME68X_NEW_DATA_MSK                       UINT8_C(0x80)
 	//#define BME68X_GASM_VALID_MSK                     UINT8_C(0x20)
 	//#define BME68X_HEAT_STAB_MSK                      UINT8_C(0x10)
-	LOG_INF("0xA0 => nhs: No Heat Stability");
-	LOG_INF("sample:count (meas index/gas index) : Temperature°, Pressure Pa, Humidity %%, 'Gas resistance ohm'");
+	LOG_DBG("0xA0 => nhs: No Heat Stability");
+	LOG_DBG("sample:count (meas index/gas index) : Temperature°, Pressure Pa, Humidity %%, 'Gas resistance ohm'");
 	uint8_t last_index = 1;
 	while(!started){
 			k_sleep(K_MSEC(100));
@@ -95,7 +95,7 @@ void bme688_service(){
 						}
 						user_data = nullptr;
 					}
-					LOG_INF("---");
+					LOG_DBG("---");
 					measure_count++;
 				}
 				last_index = data[i].gas_index;
@@ -103,18 +103,18 @@ void bme688_service(){
 					(data[i].status & BME68X_GASM_VALID_MSK)
 					){
 						user_data["sample"] = measure_count;
-						user_data["temp"] = data[i].temperature;
-						user_data["hum"] = data[i].humidity;
-						user_data["press"] = data[i].pressure;
+						user_data["temperature"] = data[i].temperature;
+						user_data["humidity"] = data[i].humidity;
+						user_data["pressure"] = data[i].pressure;
 
-						std::string gas_index_name = "g";
+						std::string gas_index_name = "gas";
 						gas_index_name += std::to_string(data[i].gas_index);
 						if(!(data[i].status & BME68X_HEAT_STAB_MSK)){
 							gas_index_name += "_nhs";
 						}
 						user_data[gas_index_name.c_str()] = data[i].gas_resistance;
 
-						LOG_INF("sample:%d (%u/%d) : %.2f° , %.2f Pa , %.2f %% , %s %.2f ohm",
+						LOG_DBG("sample:%d (%u/%d) : %.2f° , %.2f Pa , %.2f %% , %s %.2f ohm",
 							measure_count,
 							data[i].meas_index,
 							data[i].gas_index,
