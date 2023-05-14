@@ -6,3 +6,5 @@
 
 zephyr_library()
 zephyr_library_sources_ifdef(CONFIG_BME688_SERVER bme688_server.cpp)
+
+zephyr_include_directories_ifdef(CONFIG_BME688_BSEC2 bsec2)

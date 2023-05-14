@@ -5,3 +5,5 @@ menuconfig BME688_SERVER
 	depends on EXCEPTIONS
 	help
 	  Enable a thread to collect bme688 gas samples.
+
+rsource "bsec2/Kconfig"

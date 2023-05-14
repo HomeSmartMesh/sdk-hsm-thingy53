@@ -1,0 +1,7 @@
+menuconfig BME688_BSEC2
+	bool "BME688 BSEC2 Library"
+	default n
+	depends on CPLUSPLUS
+	depends on EXCEPTIONS
+	help
+	  Enable Bosch-BSEC2-Library support
