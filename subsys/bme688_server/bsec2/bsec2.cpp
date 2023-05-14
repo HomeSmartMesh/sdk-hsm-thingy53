@@ -6,12 +6,12 @@
 #include "bsec_datatypes.h"
 #include "FieldAir_HandSanitizer/FieldAir_HandSanitizer.h"
 
-LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_ERR);
 
 bsec_bme_settings_t bmeConf;
 bsec_output_t outputs[BSEC_NUMBER_OUTPUTS];
 uint8_t nOutputs;
-static uint8_t workBuffer[BSEC_MAX_WORKBUFFER_SIZE];
+//static uint8_t workBuffer[BSEC_MAX_WORKBUFFER_SIZE];
 
 float extTempOffset = 0.0;
 uint32_t ovfCounter = 0;
@@ -55,8 +55,8 @@ void bsec2_start(){
     bsec_library_return_t res = bsec_init();
 	LOG_INF("bsec_init() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
 
-    res = bsec_set_configuration(FieldAir_HandSanitizer_config, BSEC_MAX_PROPERTY_BLOB_SIZE, workBuffer, BSEC_MAX_WORKBUFFER_SIZE);
-	LOG_INF("bsec_set_configuration() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
+    //res = bsec_set_configuration(FieldAir_HandSanitizer_config, BSEC_MAX_PROPERTY_BLOB_SIZE, workBuffer, BSEC_MAX_WORKBUFFER_SIZE);
+	//LOG_INF("bsec_set_configuration() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
 
     bsec_sensor_configuration_t sensorSettings[BSEC_MAX_PHYSICAL_SENSOR];
     uint8_t nSensorSettings = BSEC_MAX_PHYSICAL_SENSOR;
