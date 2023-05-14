@@ -21,6 +21,7 @@ LOG_MODULE_REGISTER(bme688_server, LOG_LEVEL_INF);
 #define BME688_SERVICE_START_DELAY_MS 100
 
 json user_data = nullptr;
+iaq_output_t iaq_output;
 
 void bme688_service();
 
@@ -114,6 +115,14 @@ void bme688_service(){
 						user_data["temperature"] = data[i].temperature;
 						user_data["humidity"] = data[i].humidity;
 						user_data["pressure"] = data[i].pressure;
+						#if defined(CONFIG_BME688_BSEC2)
+						if(processData(data[i],iaq_output)){
+							user_data["iaq"] = iaq_output.iaq;
+							user_data["iaq_accuracy"] = iaq_output.iaq_accuracy;
+							user_data["stabilization"] = iaq_output.stabilization;
+							user_data["runin"] = iaq_output.runin_status;
+						}
+						#endif
 
 						std::string gas_index_name = "gas";
 						gas_index_name += std::to_string(data[i].gas_index);
