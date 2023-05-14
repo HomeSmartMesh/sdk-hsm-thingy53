@@ -10,6 +10,10 @@
 
 #include "bme688_server.h"
 
+#if defined(CONFIG_BME688_BSEC2)
+#include "bsec2.h"
+#endif
+
 LOG_MODULE_REGISTER(bme688_server, LOG_LEVEL_INF);
 
 #define BME688_SERVICE_STACK_SIZE 8192
@@ -55,6 +59,10 @@ void start_bme688(){
 	bme688_mode_t mode = bme688_mode_parallel;//bme688_mode_forced, bme688_mode_parallel, bme688_mode_sequencial
 	bme688_set_mode(mode);
 	LOG_INF("bme688 set to Parallel mode\n");
+
+	#if defined(CONFIG_BME688_BSEC2)
+	bsec2_start();
+	#endif
 
 	started = true;
 }
