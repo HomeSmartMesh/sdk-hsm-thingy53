@@ -9,6 +9,7 @@
 #include <string>
 
 #include "bme688_server.h"
+#include "bme68x.h"
 
 #if defined(CONFIG_BME688_BSEC2)
 #include "bsec2.h"
@@ -41,20 +42,21 @@ K_THREAD_DEFINE(	bme688_thread, BME688_SERVICE_STACK_SIZE, bme688_service, NULL,
 const struct device *const dev = DEVICE_DT_GET_ONE(bosch_bme688);
 static bme688_handler_t m_bme688_server_handler = NULL;
 static bool started = false;
-bme688_mode_t bme688_mode = bme688_mode_sleep;//bme688_mode_forced, bme688_mode_parallel, bme688_mode_sequencial
+uint8_t bme688_mode = BME68X_SLEEP_MODE;//BME68X_FORCED_MODE, BME68X_PARALLEL_MODE, BME68X_SEQUENTIAL_MODE
 
 void set_bme688_config(json &config){
 	LOG_INF("set_bme688_config()");
 	std::string text = config.dump(4);
 	LOG_INF("%s",text.c_str());
-	uint8_t nb_steps = config["temperatures"].size();
-	uint16_t temperatures[10];
-	uint16_t durations[10];
-	for(uint8_t i=0;i<nb_steps;i++){
-		temperatures[i] = config["temperatures"][i];
-		durations[i] = config["durations"][i];
+	bme688_heater_config_t heater_config;
+	heater_config.op_mode = BME68X_SEQUENTIAL_MODE;
+	heater_config.heater_profile_len = config["temperatures"].size();
+	for(uint8_t i=0;i<heater_config.heater_profile_len;i++){
+		heater_config.heater_temperature_profile[i] = config["temperatures"][i];
+		heater_config.heater_duration_profile[i] = config["durations"][i];
 	}
-	bme688_set_heater_config(temperatures,durations,nb_steps);
+
+	bme688_set_heater_config(&heater_config);
 }
 
 void start_bme688(bme688_handler_t handler){
@@ -72,7 +74,7 @@ void start_bme688(bme688_handler_t handler){
 	bsec2_start();
 	#else
 	bme688_mode_t mode = bme688_mode_parallel;//bme688_mode_forced, bme688_mode_parallel, bme688_mode_sequencial
-	bme688_set_mode(mode);
+	bme688_set_mode_default_conf(mode);
 	LOG_INF("bme688 set to Parallel mode\n");
 	#endif
 
@@ -144,30 +146,40 @@ void bme688_service(){
 
 #if defined(CONFIG_BME688_BSEC2)
 
-void set_mode(bsec_bme_settings_t &conf){
+void set_conf(bsec_bme_settings_t &conf){
+
+	bme688_set_oversampling(conf.temperature_oversampling,
+							conf.pressure_oversampling,
+							conf.humidity_oversampling);
+
+	bme688_heater_config_t heater_config;
+	heater_config.op_mode 					 = conf.op_mode;
+	heater_config.heater_temperature 		 = conf.heater_temperature;
+	heater_config.heater_duration 			 = conf.heater_duration;
+	heater_config.heater_temperature_profile = conf.heater_temperature_profile;
+	heater_config.heater_duration_profile 	 = conf.heater_duration_profile;
+	heater_config.heater_profile_len 		 = conf.heater_profile_len;
+	bme688_set_heater_config(&heater_config);
+
 	switch (conf.op_mode)
 	{
 	case BME68X_FORCED_MODE:
-		bme688_mode = bme688_mode_forced;
-		LOG_INF("bme688_set_mode(Forced)");
+		bme688_set_mode(bme688_mode_forced);
+		LOG_INF("set_conf(Forced)");
 		break;
 	case BME68X_PARALLEL_MODE:
-		if(bme688_mode != bme688_mode_parallel){
-			bme688_mode = bme688_mode_parallel;
-			LOG_INF("bme688_set_mode(Parallel)");
-		}
+		bme688_set_mode(bme688_mode_parallel);
+		LOG_INF("set_conf(Parallel)");
 		break;
 	case BME68X_SLEEP_MODE:
-		if(bme688_mode != bme688_mode_sleep){
-			bme688_mode = bme688_mode_sleep;
-			LOG_INF("bme688_set_mode(Sleep)");
-		}
+		bme688_set_mode(bme688_mode_sleep);
+		LOG_INF("set_conf(Sleep)");
 		break;
 	default:
-		LOG_INF("bme688_set_mode(Other) %u",bme688_mode);
+		LOG_INF("set_conf(Other) %u",conf.op_mode);
 		break;
 	}
-	bme688_set_mode(bme688_mode);
+
 }
 
 void update_user_data(const struct bme68x_data &data){
@@ -247,7 +259,10 @@ void bme688_service_bsec2(){
 	bsec2_get_conf(conf);
 	while(true){
 		//LOG_INF("   ---   bme688_service_bsec2() loop   ---");
-		set_mode(conf);
+		if((conf.op_mode == BME68X_FORCED_MODE) || (conf.op_mode != bme688_mode)){
+			bme688_mode = conf.op_mode;
+			set_conf(conf);
+		}
 
         if (conf.trigger_measurement && conf.op_mode != BME68X_SLEEP_MODE)
         {

@@ -25,7 +25,7 @@ void main(void)
 
 	bme688_init(dev);
 	bme688_mode_t mode = bme688_mode_parallel;//bme688_mode_forced, bme688_mode_parallel, bme688_mode_sequencial
-	bme688_set_mode(mode);
+	bme688_set_mode_default_conf(mode);
 	printf("bme688 set to Parallel mode\n");
 	k_sleep(K_MSEC(3000));
 	int measure_count = 0;

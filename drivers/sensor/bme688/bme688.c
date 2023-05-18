@@ -41,6 +41,8 @@ uint16_t mul_prof[10] = { 5, 2, 10, 30, 5, 5, 5, 5, 5, 5 };
 uint16_t dur_prof[10] = { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
 uint8_t nb_steps = 10;
 
+#define BSEC_TOTAL_HEAT_DUR             UINT16_C(140)
+
 //default init function
 void bme688_set_mode_forced();
 
@@ -157,23 +159,75 @@ int bme688_init(const struct device *dev)
     return (int)rslt;
 }
 
-void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t v_nb_steps){
-    nb_steps = v_nb_steps;
-    for(uint8_t i=0;i<nb_steps;i++){
-        temp_prof[i] = temperatures[i];
-        dur_prof[i] = durations[i];
+void bme688_set_mode(bme688_mode_t v_mode){
+    int8_t rslt = BME68X_OK;
+    mode = v_mode;
+
+    switch(v_mode){
+        case bme688_mode_sleep:
+            rslt = bme68x_set_op_mode(BME68X_SLEEP_MODE,&bme_api_dev);
+            bme68x_check_rslt("bme68x_set_op_mode",rslt);
+        break;
+        case bme688_mode_forced:
+            rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
+            bme68x_check_rslt("bme68x_set_op_mode",rslt);
+        break;
+        case bme688_mode_parallel:
+            rslt = bme68x_set_op_mode(BME68X_PARALLEL_MODE, &bme_api_dev);
+            bme68x_check_rslt("bme68x_set_op_mode", rslt);
+        break;
+        case bme688_mode_sequencial:
+            rslt = bme68x_set_op_mode(BME68X_SEQUENTIAL_MODE, &bme_api_dev);
+            bme68x_check_rslt("bme68x_set_op_mode", rslt);
+        break;
+        default:
+        break;
     }
-    printf("bme688 driver>");
-    printf("nb_steps:%u\n",nb_steps);
-    printf("temp_prof:");
-    for(int i=0;i<nb_steps;i++){
-        printf("%u ",temp_prof[i]);
+}
+
+void bme688_set_oversampling(uint8_t osTemp, uint8_t osPres, uint8_t osHum){
+
+    int8_t rslt = BME68X_OK;
+	rslt = bme68x_get_conf(&conf, &bme_api_dev);
+    bme68x_check_rslt("bme68x_get_conf",rslt);
+    if(rslt == BME68X_OK){
+        conf.os_temp = osTemp;
+        conf.os_pres = osPres;
+        conf.os_hum = osHum;
+        rslt = bme68x_set_conf(&conf,&bme_api_dev);
+        bme68x_check_rslt("bme68x_set_conf",rslt);
     }
-    printf("\ndur_prof:");
-    for(int i=0;i<nb_steps;i++){
-        printf("%u ",dur_prof[i]);
+}
+
+void bme688_set_heater_config(bme688_heater_config_t *heater_config){
+    int8_t rslt = BME68X_OK;
+
+    switch(heater_config->op_mode){
+        case BME68X_FORCED_MODE:
+            heatr_conf.enable = BME68X_ENABLE;
+            heatr_conf.heatr_temp = heater_config->heater_temperature;
+            heatr_conf.heatr_dur = heater_config->heater_duration;
+            rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf, &bme_api_dev);
+        break;
+        case BME68X_PARALLEL_MODE:
+            heatr_conf.enable = BME68X_ENABLE;
+            heatr_conf.heatr_temp_prof = heater_config->heater_temperature_profile;
+            heatr_conf.heatr_dur_prof = heater_config->heater_duration_profile;
+            uint32_t measure_duration = bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &conf, &bme_api_dev);
+            heatr_conf.shared_heatr_dur = BSEC_TOTAL_HEAT_DUR - (measure_duration / INT64_C(1000));
+            heatr_conf.profile_len = heater_config->heater_profile_len;
+            rslt = bme68x_set_heatr_conf(BME68X_PARALLEL_MODE, &heatr_conf, &bme_api_dev);
+        break;
+        case BME68X_SEQUENTIAL_MODE:
+            heatr_conf.enable = BME68X_ENABLE;
+            heatr_conf.heatr_temp_prof = heater_config->heater_temperature_profile;
+            heatr_conf.heatr_dur_prof = heater_config->heater_duration_profile;
+            heatr_conf.profile_len = heater_config->heater_profile_len;
+            rslt = bme68x_set_heatr_conf(BME68X_SEQUENTIAL_MODE, &heatr_conf, &bme_api_dev);
+        break;
     }
-    printf("\n");
+    bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
+
 }
 
 void bme688_set_mode_forced(){
@@ -247,7 +301,7 @@ void bme688_set_mode_sequencial(){
     bme68x_check_rslt("bme68x_set_op_mode", rslt);
 }
 
-void bme688_set_mode(bme688_mode_t v_mode)
+void bme688_set_mode_default_conf(bme688_mode_t v_mode)
 {
     int8_t rslt = BME68X_OK;
     mode = v_mode;

@@ -6,7 +6,7 @@
 #include "bsec_datatypes.h"
 #include "FieldAir_HandSanitizer/FieldAir_HandSanitizer.h"
 
-LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_ERR);
 
 bsec_bme_settings_t bmeConf;
 bsec_output_t outputs[BSEC_NUMBER_OUTPUTS];
@@ -33,18 +33,21 @@ bsec_sensor_configuration_t virtualSensors[] = {
 void print_bme_conf(bsec_bme_settings_t &bmeConf){
     LOG_INF("   * next_call: %" PRId64 " process_data: %u",bmeConf.next_call,bmeConf.process_data);
     LOG_INF("   * op_mode : %u, trigger:%u, run_gas: %u",bmeConf.op_mode,bmeConf.trigger_measurement,bmeConf.run_gas);
-
-    LOG_DBG("   * heater_profile_len : %u",bmeConf.heater_profile_len);
-    LOG_DBG("   * heater_temperature_profile : ");
-    for(int i=0;i<bmeConf.heater_profile_len;i++){
-        LOG_DBG("%u ",bmeConf.heater_temperature_profile[i]);
+    if(bmeConf.op_mode == BME68X_FORCED_MODE){
+        LOG_INF("   * temp : %u, dur:%u",bmeConf.heater_temperature,bmeConf.heater_duration);
+    }else{
+        LOG_DBG("   * heater_profile_len : %u",bmeConf.heater_profile_len);
+        LOG_DBG("   * heater_temperature_profile : ");
+        for(int i=0;i<bmeConf.heater_profile_len;i++){
+            LOG_DBG("%u ",bmeConf.heater_temperature_profile[i]);
+        }
+        LOG_DBG("\n");
+        LOG_DBG("   * heater_duration_profile : ");
+        for(int i=0;i<bmeConf.heater_profile_len;i++){
+            LOG_DBG("%u ",bmeConf.heater_duration_profile[i]);
+        }
+        LOG_DBG("\n");
     }
-    LOG_DBG("\n");
-    LOG_DBG("   * heater_duration_profile : ");
-    for(int i=0;i<bmeConf.heater_profile_len;i++){
-        LOG_DBG("%u ",bmeConf.heater_duration_profile[i]);
-    }
-    LOG_DBG("\n");
 }
 
 void bsec2_start(){

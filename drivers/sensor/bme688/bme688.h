@@ -9,6 +9,7 @@ extern "C" {
 #endif /*__cplusplus */
 
 #include "bme68x.h"
+#include "bme68x_defs.h"
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/sensor.h>
 
@@ -24,6 +25,15 @@ struct bme688_config {
 	struct i2c_dt_spec i2c;
 };
 
+typedef struct{
+    uint16_t heater_temperature;
+    uint16_t heater_duration;
+    uint16_t *heater_temperature_profile;
+    uint16_t *heater_duration_profile;
+    uint8_t heater_profile_len;
+    uint8_t op_mode;
+}bme688_heater_config_t;
+
 /*!
  *  @brief Function to select the interface between SPI and I2C.
  *
@@ -36,8 +46,10 @@ struct bme688_config {
  */
 int bme688_init(const struct device * dev);
 
-void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t v_nb_steps);
 void bme688_set_mode(bme688_mode_t v_mode);
+void bme688_set_oversampling(uint8_t osTemp, uint8_t osPres, uint8_t osHum);
+void bme688_set_heater_config(bme688_heater_config_t *heater_config);
+void bme688_set_mode_default_conf(bme688_mode_t v_mode);
 
 void bme688_wait_for_measure();
 int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);

@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define BSEC_CHECK_INPUT(x, shift)		    (x & (1 << (shift-1)))
+#define BSEC_CHECK_INPUT(x, shift)		(x & (1 << (shift-1)))
 #define ARRAY_LEN(array)				(sizeof(array)/sizeof(array[0]))
 
 typedef struct{
