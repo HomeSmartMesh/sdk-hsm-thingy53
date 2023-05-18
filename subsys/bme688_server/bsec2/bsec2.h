@@ -6,6 +6,7 @@
 #include <string>
 
 #include "bme68x_defs.h"
+#include "bsec_datatypes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,13 +18,19 @@ extern "C" {
 typedef struct{
     float iaq;
     float iaq_accuracy;
+    float co2_eq;
+    float co2_eq_accuracy;
+    float breath_voc;
+    float breath_voc_accuracy;
     bool stabilization;
     bool runin_status;
 }iaq_output_t;
 
 void bsec2_start();
 
-bool processData(struct bme68x_data &data, iaq_output_t &iaq_output);
+void bsec2_get_conf(bsec_bme_settings_t &conf);
+
+bool processData(const struct bme68x_data &data, iaq_output_t &iaq_output,int64_t time_stamp);
 
 #ifdef __cplusplus
 }

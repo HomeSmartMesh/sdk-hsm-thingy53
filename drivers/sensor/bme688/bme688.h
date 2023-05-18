@@ -14,6 +14,7 @@ extern "C" {
 
 #define BME68X_VALID_DATA (BME68X_NEW_DATA_MSK|BME68X_GASM_VALID_MSK|BME68X_HEAT_STAB_MSK)
 typedef enum{
+	bme688_mode_sleep = 0x00,
 	bme688_mode_forced = 0x01,
 	bme688_mode_parallel = 0x02,
 	bme688_mode_sequencial = 0x03
@@ -38,6 +39,7 @@ int bme688_init(const struct device * dev);
 void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t v_nb_steps);
 void bme688_set_mode(bme688_mode_t v_mode);
 
+void bme688_wait_for_measure();
 int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan);
 uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *data);
 

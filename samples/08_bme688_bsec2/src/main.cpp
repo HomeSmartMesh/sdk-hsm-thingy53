@@ -20,7 +20,7 @@ int main(void)
 	k_sleep(K_MSEC(10000));
 	printf(" - Test bme688 bsec2 app - start\n");
 
-	set_bme688_handler(bme688_handler);
+	start_bme688(bme688_handler);
 	k_sleep(K_MSEC(3000));
 
 	uint32_t count = 0;

@@ -20,8 +20,8 @@ namespace hsm
 
 typedef void (*bme688_handler_t)(json &data);
 
-/*  Setting the handler starts the BME688 thread loop*/
-void set_bme688_handler(bme688_handler_t handler);
+/*  Setting the handler and starts the BME688 thread loop*/
+void start_bme688(bme688_handler_t handler);
 
 /* (Optional) The config currently should be set before setting the handler */
 void set_bme688_config(json &config);

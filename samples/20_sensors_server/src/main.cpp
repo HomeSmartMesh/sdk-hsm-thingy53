@@ -99,7 +99,7 @@ int main(void)
 	app_battery_init();
 	app_bh1749_init();
 	set_endpoint_handler(json_endpoint_handler);
-	set_bme688_handler(bme688_handler);
+	start_bme688(bme688_handler);
 
 	app_led_blink_green(0.1,500,1000);
 

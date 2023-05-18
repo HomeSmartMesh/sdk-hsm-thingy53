@@ -6,7 +6,7 @@
 #include "bsec_datatypes.h"
 #include "FieldAir_HandSanitizer/FieldAir_HandSanitizer.h"
 
-LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_ERR);
+LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_INF);
 
 bsec_bme_settings_t bmeConf;
 bsec_output_t outputs[BSEC_NUMBER_OUTPUTS];
@@ -20,6 +20,8 @@ uint32_t lastMillis = 0;
 // [{bsec_virtual_sensor_t, DEFINED float}]
 bsec_sensor_configuration_t virtualSensors[] = {
     {BSEC_SAMPLE_RATE_LP,BSEC_OUTPUT_IAQ},
+    {BSEC_SAMPLE_RATE_LP,BSEC_OUTPUT_CO2_EQUIVALENT},
+    {BSEC_SAMPLE_RATE_LP,BSEC_OUTPUT_BREATH_VOC_EQUIVALENT},
     //BSEC_OUTPUT_RAW_TEMPERATURE,
     //BSEC_OUTPUT_RAW_PRESSURE,
     //BSEC_OUTPUT_RAW_HUMIDITY,
@@ -65,14 +67,15 @@ void bsec2_start(){
 	LOG_INF("nSensorSettings = %u",nSensorSettings);
 
     memset(&bmeConf, 0, sizeof(bmeConf));
-    memset(&outputs, 0, sizeof(outputs));
 
+}
+
+void bsec2_get_conf(bsec_bme_settings_t &conf){
     const int64_t currTimeNs = k_ticks_to_ns_near64(k_uptime_ticks());
-    res = bsec_sensor_control(currTimeNs, &bmeConf);
-	LOG_INF("initial bsec_sensor_control() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
+    bsec_library_return_t res = bsec_sensor_control(currTimeNs, &bmeConf);
+	LOG_INF("bsec2_get_conf() bsec_sensor_control() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
     print_bme_conf(bmeConf);
-
-
+    conf = bmeConf;
 }
 
 void handle_outputs(bsec_output_t *outputs,uint8_t nOutputs, iaq_output_t &iaq_output){
@@ -85,6 +88,16 @@ void handle_outputs(bsec_output_t *outputs,uint8_t nOutputs, iaq_output_t &iaq_o
                 iaq_output.iaq = output.signal;
                 iaq_output.iaq_accuracy = output.accuracy;
                 LOG_INF("iaq = %.2f ; iaq accuracy = %u",output.signal,output.accuracy);
+                break;
+            case BSEC_OUTPUT_CO2_EQUIVALENT:
+                iaq_output.co2_eq = output.signal;
+                iaq_output.co2_eq_accuracy = output.accuracy;
+                LOG_INF("co2 = %.2f ; co2 accuracy = %u",output.signal,output.accuracy);
+                break;
+            case BSEC_OUTPUT_BREATH_VOC_EQUIVALENT:
+                iaq_output.breath_voc = output.signal;
+                iaq_output.breath_voc_accuracy = output.accuracy;
+                LOG_INF("breath voc = %.2f ; breath voc accuracy = %u",output.signal,output.accuracy);
                 break;
             case BSEC_OUTPUT_RAW_TEMPERATURE:
                 LOG_INF("temperature = %.2f",output.signal);
@@ -114,19 +127,7 @@ void handle_outputs(bsec_output_t *outputs,uint8_t nOutputs, iaq_output_t &iaq_o
 }
 
 //called when BME68X_NEW_DATA_MSK && BME68X_GASM_VALID_MSK
-bool processData(struct bme68x_data &data, iaq_output_t &iaq_output){
-    bsec_library_return_t res;
-    const int64_t currTimeNs = k_ticks_to_ns_near64(k_uptime_ticks());
-    if(currTimeNs >= bmeConf.next_call){
-        res = bsec_sensor_control(currTimeNs, &bmeConf);//prevent BSEC_W_SC_CALL_TIMING_VIOLATION
-        LOG_INF(" next_call bsec_sensor_control() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
-        print_bme_conf(bmeConf);
-        if (res != BSEC_OK)
-            return false;
-    }
-    //else{
-    //    LOG_INF("next call in %" PRId64 " seconds",(bmeConf.next_call-currTimeNs)/1000000000);
-    //}
+bool processData(const struct bme68x_data &data, iaq_output_t &iaq_output,int64_t time_stamp){
 
     if (bmeConf.trigger_measurement && bmeConf.op_mode != BME68X_SLEEP_MODE){
         LOG_DBG("processData() with trigger_measurement and not in sleep mode");
@@ -138,25 +139,25 @@ bool processData(struct bme68x_data &data, iaq_output_t &iaq_output){
         {
             inputs[nInputs].sensor_id = BSEC_INPUT_HEATSOURCE;
             inputs[nInputs].signal = extTempOffset;
-            inputs[nInputs].time_stamp = currTimeNs;
+            inputs[nInputs].time_stamp = time_stamp;
             nInputs++;
             inputs[nInputs].signal = data.temperature;
             inputs[nInputs].sensor_id = BSEC_INPUT_TEMPERATURE;
-            inputs[nInputs].time_stamp = currTimeNs;
+            inputs[nInputs].time_stamp = time_stamp;
             nInputs++;
         }
         if (BSEC_CHECK_INPUT(bmeConf.process_data, BSEC_INPUT_HUMIDITY))
         {
             inputs[nInputs].signal = data.humidity;
             inputs[nInputs].sensor_id = BSEC_INPUT_HUMIDITY;
-            inputs[nInputs].time_stamp = currTimeNs;
+            inputs[nInputs].time_stamp = time_stamp;
             nInputs++;
         }
         if (BSEC_CHECK_INPUT(bmeConf.process_data, BSEC_INPUT_PRESSURE))
         {
             inputs[nInputs].sensor_id = BSEC_INPUT_PRESSURE;
             inputs[nInputs].signal = data.pressure;
-            inputs[nInputs].time_stamp = currTimeNs;
+            inputs[nInputs].time_stamp = time_stamp;
             nInputs++;
         }
         if (BSEC_CHECK_INPUT(bmeConf.process_data, BSEC_INPUT_GASRESISTOR) &&
@@ -164,7 +165,7 @@ bool processData(struct bme68x_data &data, iaq_output_t &iaq_output){
         {
             inputs[nInputs].sensor_id = BSEC_INPUT_GASRESISTOR;
             inputs[nInputs].signal = data.gas_resistance;
-            inputs[nInputs].time_stamp = currTimeNs;
+            inputs[nInputs].time_stamp = time_stamp;
             nInputs++;
         }
         if (BSEC_CHECK_INPUT(bmeConf.process_data, BSEC_INPUT_PROFILE_PART) &&
@@ -172,14 +173,14 @@ bool processData(struct bme68x_data &data, iaq_output_t &iaq_output){
         {
             inputs[nInputs].sensor_id = BSEC_INPUT_PROFILE_PART;
             inputs[nInputs].signal = data.gas_index;
-            inputs[nInputs].time_stamp = currTimeNs;
+            inputs[nInputs].time_stamp = time_stamp;
             nInputs++;
         }
 
         if(nInputs > 0){
             memset(outputs, 0, sizeof(outputs));
             nOutputs = BSEC_NUMBER_OUTPUTS;
-            res = bsec_do_steps(inputs, nInputs, outputs, &nOutputs);
+            bsec_library_return_t res = bsec_do_steps(inputs, nInputs, outputs, &nOutputs);
             LOG_DBG("bsec_do_steps() nOutputs=%u  res=%d => %s",nOutputs,res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
             if (res != BSEC_OK)
                 return false;

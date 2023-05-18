@@ -41,6 +41,9 @@ uint16_t mul_prof[10] = { 5, 2, 10, 30, 5, 5, 5, 5, 5, 5 };
 uint16_t dur_prof[10] = { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 };
 uint8_t nb_steps = 10;
 
+//default init function
+void bme688_set_mode_forced();
+
 /******************************************************************************/
 /*!                User interface functions                                   */
 
@@ -149,6 +152,8 @@ int bme688_init(const struct device *dev)
     rslt = bme68x_init(&bme_api_dev);
     bme68x_check_rslt("bme68x_init",rslt);
 
+    bme688_set_mode_forced();//default mode, can be overridden by bme688_set_mode()
+
     return (int)rslt;
 }
 
@@ -169,6 +174,30 @@ void bme688_set_heater_config(uint16_t *temperatures,uint16_t *durations,uint8_t
         printf("%u ",dur_prof[i]);
     }
     printf("\n");
+}
+
+void bme688_set_mode_forced(){
+    int8_t rslt = BME68X_OK;
+
+    mode = bme688_mode_forced;
+
+    conf.filter = BME68X_FILTER_OFF;
+    conf.odr = BME68X_ODR_NONE;
+    conf.os_hum = BME68X_OS_16X;
+    conf.os_pres = BME68X_OS_1X;
+    conf.os_temp = BME68X_OS_2X;
+    rslt = bme68x_set_conf(&conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_conf",rslt);
+
+    heatr_conf.enable = BME68X_ENABLE;
+    heatr_conf.heatr_temp = 300;
+    heatr_conf.heatr_dur = 100;
+    rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
+
+    rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
+    bme68x_check_rslt("bme68x_set_op_mode",rslt);
+
 }
 
 void bme688_set_mode_parallel()
@@ -220,10 +249,16 @@ void bme688_set_mode_sequencial(){
 
 void bme688_set_mode(bme688_mode_t v_mode)
 {
+    int8_t rslt = BME68X_OK;
     mode = v_mode;
 
     switch(v_mode){
+        case bme688_mode_sleep:
+            rslt = bme68x_set_op_mode(BME68X_SLEEP_MODE,&bme_api_dev);
+            bme68x_check_rslt("bme68x_set_op_mode",rslt);
+        break;
         case bme688_mode_forced:
+            bme688_set_mode_forced();
         break;
         case bme688_mode_parallel:
             bme688_set_mode_parallel();
@@ -236,28 +271,9 @@ void bme688_set_mode(bme688_mode_t v_mode)
     }
 }
 
-int bme688_sample_fetch_forced(){
-    int8_t rslt = BME68X_OK;
+int wait_for_forced(){
 
-    mode = bme688_mode_forced;
-
-    conf.filter = BME68X_FILTER_OFF;
-    conf.odr = BME68X_ODR_NONE;
-    conf.os_hum = BME68X_OS_16X;
-    conf.os_pres = BME68X_OS_1X;
-    conf.os_temp = BME68X_OS_2X;
-    rslt = bme68x_set_conf(&conf,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_conf",rslt);
-
-    heatr_conf.enable = BME68X_ENABLE;
-    heatr_conf.heatr_temp = 300;
-    heatr_conf.heatr_dur = 100;
-    rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
-
-    rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_op_mode",rslt);
-
+    //https://github.com/boschsensortec/BME68x-Sensor-API/blob/80ea120a8b8ac987d7d79eb68a9ed796736be845/examples/forced_mode/forced_mode.c#L71
     uint32_t del_period = bme68x_get_meas_dur(BME68X_FORCED_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur * 1000);
     //printf("del_period = %u\n",del_period);
     k_sleep(K_USEC(del_period));
@@ -265,8 +281,9 @@ int bme688_sample_fetch_forced(){
     return 0;
 }
 
-int bme688_sample_fetch_parallel(){
+int wait_for_parallel(){
 
+    //https://github.com/boschsensortec/BME68x-Sensor-API/blob/80ea120a8b8ac987d7d79eb68a9ed796736be845/examples/parallel_mode/parallel_mode.c#L97
     uint32_t del_period = bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &conf, &bme_api_dev) + (heatr_conf.shared_heatr_dur * 1000);
     //printf("del_period = %u\n",del_period);
     k_sleep(K_USEC(del_period));
@@ -274,32 +291,39 @@ int bme688_sample_fetch_parallel(){
     return 0;
 }
 
-int bme688_sample_fetch_sequencial(){
+int wait_for_sequencial(){
 
-    uint32_t del_period = bme68x_get_meas_dur(BME68X_SEQUENTIAL_MODE, &conf, &bme_api_dev) + (heatr_conf.shared_heatr_dur * 1000);
+    //https://github.com/boschsensortec/BME68x-Sensor-API/blob/80ea120a8b8ac987d7d79eb68a9ed796736be845/examples/sequential_mode/sequential_mode.c#L84
+    uint32_t del_period = bme68x_get_meas_dur(BME68X_SEQUENTIAL_MODE, &conf, &bme_api_dev) + (heatr_conf.heatr_dur_prof[0] * 1000);
     //printf("del_period = %u\n",del_period);
     k_sleep(K_USEC(del_period));
 
     return 0;
 }
 
-int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
+void bme688_wait_for_measure()
 {
-    int8_t rslt = BME68X_OK;
-
     switch(mode){
         case bme688_mode_forced:
-            bme688_sample_fetch_forced();
+            wait_for_forced();
         break;
         case bme688_mode_parallel:
-            bme688_sample_fetch_parallel();
+            wait_for_parallel();
         break;
         case bme688_mode_sequencial:
-            bme688_sample_fetch_sequencial();
+            wait_for_sequencial();
         break;
         default:
         break;
     }
+
+}
+
+int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
+{
+    int8_t rslt = BME68X_OK;
+
+    bme688_wait_for_measure();
 
 	return rslt;
 }
