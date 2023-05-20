@@ -1,27 +1,63 @@
-# sdk-hsm-thingy53
-Home Automation Software-Development-Kit from Home-Smart-Mesh for the Nordic Thingy53 dev kit
+# Overview
+Zephyr reference samples for Thingy53 dev kit, simple reference samples and sensors server
+## Features
+* Air quality with BME688 driver and library integrating Bosch's BSEC2 library for IAQ (Indoor Air Quality) measurements.
+* Mesh Network with OpenThread broadcasting UDP packets as client and running a sensors server.
+* C++ application with json inputs for config and outputs for sensors enables direct mapping to MQTT
+* RGB Led, Light color, Battery
 
+![SensorsServer](./design/SensorsServer.drawio.svg)
+
+## Dev Kit
+Below is an open box Nordic Thingy53 attached to USB and j-Link debugger
 ![USB Attachments](./design/thingy53-usb-attachments.webp)
 
-Hardware
+## Hardware
 * Nordic's [Thingy53](https://www.nordicsemi.com/Products/Development-hardware/Nordic-Thingy-53) IoT Prototyping platform
 * Segger's [j-Link Edu mini](https://www.segger.com/products/debug-probes/j-link/models/j-link-edu-mini/) (optional)
 
+Used Sensors in this repo's samples
+* BME688 Digital nose : low power gas, pressure, temperature & humidity sensor with AI
+    * [BME688 Product page](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme688/)
+    * [BME688 Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme688-ds000.pdf)
 
-# Usage
+* Color sensor BH1749NUC
+    * [BH1749NUC Datasheet](https://fscdn.rohm.com/en/products/databook/datasheet/ic/sensor/light/bh1749nuc-e.pdf)
+    * Measures Red, Green, Blue and IR
+    * Illuminance Detection Range 80 klx (0.0125 lux/count)
+
+## Repo structure
+![Dependencies](./design/dependencies.drawio.svg)
+
+## Drivers and libraries
+The following drivers and libraries have been created in this repo
+* BME688 Zephyr Driver : in [hsm/drivers/sensor/bme688](hsm/drivers/sensor/bme688)
+    * `BME68x-Sensor-API` vendor driver integration https://github.com/boschsensortec/BME68x-Sensor-API
+    * Using Zephyr's Sensor API in C language for usage in BME688 simple forced mode
+    * Driver extension functions to use BME688 in Parallel mode and get all x10 gas measures
+* BME688 Server : in [hsm/subsys/bme688_server](hsm\subsys\bme688_server)
+    * C++ wrapper to configure the BME688 usage in json structure (temperatures profile and durations)
+    * handler delivers the sensor results in a json structure (temperature, humidity, pressure, gas-0..gas-9)
+    * `Bosch-BSEC2-Library` .a vendor's binary integration for IAQ (Indoor Air Quality) measurements https://github.com/boschsensortec/Bosch-BSEC2-Library
+
+BME688 Components and Data
+
+![BME688DriversLib](./design/BME688DriversLib.drawio.svg)
+
+## Usage
 ```bash
 mkdir thingy53
 cd thingy53
 >west init -m https://github.com/HomeSmartMesh/sdk-hsm-thingy53 --mr main
 >west update
 ```
-## building a sample
+building a sample
 ```bash
-cd hsm/samples/12_openthread_alive
+cd hsm/samples/20_sensors_server
 west build
 west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
-## flashing
+flashing
 flashing using an attached debugger
 ```
 >west flash
@@ -30,22 +66,28 @@ flashing using an attached debugger
 flashing manually
 * connect to USB
 * power on while holding SW2 down, see details on [updating thingy53 through USB](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/working_with_nrf/nrf53/thingy53_gs.html#updating-through-usb)
-* with nRFConnect Programmer flash `hsm\samples\12_openthread_alive\build\zephyr\dfu_application.zip`
+* with nRFConnect Programmer flash `hsm\samples\20_sensors_server\build\zephyr\dfu_application.zip`
 
 Serial Port
 * USB Serial Port : with the config `CONFIG_STDOUT_CONSOLE=y` this board creates a UAB virtual COM port of stdout. Note using the nRFSDK Connect Serial Terminal allows auto detection and reconnect of serial ports, very useful to recover automatically after flashing
 * RTT Debugger Serial Port : using `CONFIG_USE_SEGGER_RTT=y` it is possible to have logs with the attached debugger and without using the board USB device, this needs rebuild the sample differently though.
 
-# Samples
+
+# Samples details
 for convenience and given that this repo is providing samples for `thingy53_nrf5340_cpuapp` board, it has been configured in the CMakeLists.txt to be taken as default board, it is still possbile to override it with -b option.
 ## 01_alive_counter_uart
+[samples/01_alive_counter_uart](./samples/01_alive_counter_uart)
+
 simplest program for checking UART with a live counter
 ## 02_rgb_led
+[samples/02_rgb_led](./samples/02_rgb_led)
+
 controlling the colors of the Red Green and Blue LEDs with pwm
 * function for setting x3 float colors
 * function for blinking a color
 
 ## 03_battery
+[samples/03_battery](./samples/03_battery)
 
 * Power Management Integrated Circuit specification [nPM1100_PS_v1.3.pdf](https://infocenter.nordicsemi.com/pdf/nPM1100_PS_v1.3.pdf)
 * Thingy53 schematics `PCA20053_Schematic_And_PCB.pdf`
@@ -56,26 +98,23 @@ used pios
 * Battery charging Indicator CHG PMIC_STATUS P1.00 `battery-charge-gpios` in `app.overlay`
 
 ## 04_bme680
+[samples/04_bme680](./samples/04_bme680)
 
-* BME688 Digital low power gas, pressure, temperature & humidity sensor with AI
-    * [BME688 Product page](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme688/)
-    * [BME688 Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme688-ds000.pdf)
-
-Note : using BME680 driver for BME688 can only fetch temp,hum,press but not gas due to difference in registers config
+    Note : Do not use this sample, it is for info only, using BME680 driver for BME688 can only fetch temp,hum,press but not gas due to difference in registers config
 
 * this sample is based on [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
-* this samples uses the device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts`
-* [Bosch-sensortec BME680](https://www.bosch-sensortec.com/products/environmental-sensors/gas-sensors/bme680/) used for
+* this samples uses the device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts` used for
     * Temperature
     * Air pressure
     * Humidity
 
-* register redefine : https://devzone.nordicsemi.com/f/nordic-q-a/98569/gas-resistance-values-from-bme688-on-thingy-53
-
 ## 05_bme688
-* this sample includes the supplier driver https://github.com/boschsensortec/BME68x-Sensor-API
-* it is wrapped over the Zephyr's Sensor API
+[samples/05_bme688](./samples/05_bme688)
 
+* sample demonstrating the usage of the BME688 C driver wrapper over Zephyr's sensor API and using Bosch's `BME68x-Sensor-API`
+* config flag `CONFIG_BME688=y`
+
+Output
 ```shell
 del_period = 142590
 Temperature(deg C), Pressure(Pa), Humidity(%), Gas resistance(ohm)
@@ -83,7 +122,36 @@ Temperature(deg C), Pressure(Pa), Humidity(%), Gas resistance(ohm)
 new data , no Gas Index , Gas Meas Valid , Heat Stability
 ```
 
-## 06_bh1749
+references
+* Nordic DevZone Forum : https://devzone.nordicsemi.com/f/nordic-q-a/98569/gas-resistance-values-from-bme688-on-thingy-53
+
+## 06_bme688_parallel
+[samples/06_bme688_parallel](./samples/06_bme688_parallel)
+
+* introducing usage additional custom functions to enable usage of BME688 in prallel mode still in C language
+* config flag `CONFIG_BME688=y`
+* `bme688_set_mode_default_conf()`
+* `bme688_data_get()`
+
+## 07_bme688_parallel_cpp
+[samples/07_bme688_parallel_cpp](./samples/07_bme688_parallel_cpp)
+
+* a C++ wrapper for bme688_server library
+* config flags `CONFIG_BME688=y` and `CONFIG_BME688_SERVER=y`
+* `set_bme688_config()` with temperatures and durations in a json structure
+* `start_bme688()` with a handler that gets a json structure with temperature, humidity, pressure, gas-0..gas-9
+
+## 08_bme688_bsec2
+[samples/08_bme688_bsec2](./samples/08_bme688_bsec2)
+
+* Enables the BSEC2 part of the bme688_server library, `Bosch-BSEC2-Library` .a vendor's binary integration for IAQ (Indoor Air Quality) measurements https://github.com/boschsensortec/Bosch-BSEC2-Library
+* new flag `CONFIG_BME688_BSEC2=y` in addition to `CONFIG_BME688=y` and `CONFIG_BME688_SERVER=y`
+* returns `iaq`, `iaq_accuracy`, `co2_eq`, `breath_voc`, `stabilization` and `runin` calculated from the bsec2 library
+
+
+## 09_bh1749
+[samples/09_bh1749](./samples/09_bh1749)
+
 * Color sensor BH1749NUC
     * [BH1749NUC Datasheet](https://fscdn.rohm.com/en/products/databook/datasheet/ic/sensor/light/bh1749nuc-e.pdf)
     * Measures Red, Green, Blue and IR
@@ -92,6 +160,9 @@ new data , no Gas Index , Gas Meas Valid , Heat Stability
 
 
 ## 11_openthread_shell
+[samples/11_openthread_shell](./samples/11_openthread_shell)
+
+
 * provides a shell on the USB UART interface that allows to manually configure the openthread stack
 
 build
@@ -101,6 +172,8 @@ cd thingy53/hsm/samples/11_openthread_shell
 ```
 
 ## 12_ot_udp_client
+[samples/12_ot_udp_client](./samples/12_ot_udp_client)
+
 * using a fixed openthread network config allows to hard-code network credentials for testing only (not suited for deployment), even when used for local deployments it is unpractical as the device needs to be flashed everytime the network parameters change
 * loops sending alive counter messages as thread udp packets
 * `overlay-logging.conf` uses RTT and USB log for openthread state and loop count
@@ -112,6 +185,8 @@ build options
 ```
 
 ## 13_ot_joiner
+[samples/13_ot_joiner](./samples/13_ot_joiner)
+
 * Commissioning with a joiner PSKd (Pre-Shared Key for the Device) `ABCDE2`
     * needs the commissioner to be ready for this device
 * short SW2 button press < 1 sec : soft reset `SYS_REBOOT_WARM`
@@ -136,12 +211,24 @@ Note on joining:
 * without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
 ## 14_ot_udp_echo_server
+[samples/14_ot_udp_echo_server](./samples/14_ot_udp_echo_server)
+
+* OpenThread broadcasts udp packet
 * separate `udp_rx_handler` thread
 * binds to port 4242 and echoes back received characters (printed as text)
 
 ## 15_udp_json_endpoint
+[samples/15_udp_json_endpoint](./samples/15_udp_json_endpoint)
+
+* OpenThread server endpoint can receive json commands and send back responses
+
 
 ## 20_sensors_server
+[samples/20_sensors_server](./samples/20_sensors_server)
+
+* OpenThread Joiner device
+* OpenThread mesh client broadcasts udp json packet with Voltage, Alive counter, Charging status, ambient light RGB IR, Temperature, pressure, humidity and Indoor Air Quality
+* OpenThread server endpoint can receive json commands and send back responses
 
 on rasp
 ```shell
@@ -164,8 +251,6 @@ udp send ff02::1 4242 hi_there_now
 
 # Deveopment guide
 This repository is a [Zephyr workspace application](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/develop/application/index.html#zephyr-workspace-application) that contains the samples source code only therefore lightweight to clone and manage, yet it tracks an exact reference of all dependencies that get deployed once initialized with `west init`
-
-![Dependencies](./design/dependencies.drawio.svg)
 
 ## Hints and Tricks
 * k_sleep in interrupt functions might lead to os crash, usage of LOG effect unclear so to be avoided
