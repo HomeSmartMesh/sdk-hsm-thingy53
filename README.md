@@ -33,11 +33,11 @@ Used Sensors in this repo's samples
 
 ## Drivers and libraries
 The following drivers and libraries have been created in this repo
-* BME688 Zephyr Driver : in [hsm/drivers/sensor/bme688](hsm/drivers/sensor/bme688)
+* BME688 Zephyr Driver : in [drivers/sensor/bme688](drivers/sensor/bme688)
     * `BME68x-Sensor-API` vendor driver integration https://github.com/boschsensortec/BME68x-Sensor-API
     * Using Zephyr's Sensor API in C language for usage in BME688 simple forced mode
     * Driver extension functions to use BME688 in Parallel mode and get all x10 gas measures
-* BME688 Server : in [hsm/subsys/bme688_server](hsm\subsys\bme688_server)
+* BME688 Server : in [subsys/bme688_server](subsys/bme688_server)
     * C++ wrapper to configure the BME688 usage in json structure (temperatures profile and durations)
     * handler delivers the sensor results in a json structure (temperature, humidity, pressure, gas-0..gas-9)
     * `Bosch-BSEC2-Library` .a vendor's binary integration for IAQ (Indoor Air Quality) measurements https://github.com/boschsensortec/Bosch-BSEC2-Library
@@ -274,3 +274,8 @@ This repository is targetting an nRF dev kit, thereforeit is safer to derive it 
 
 ## Zephyr references
 * Kernel services : https://docs.zephyrproject.org/latest/kernel/services/index.html
+
+## Project references
+* https://devzone.nordicsemi.com/f/nordic-q-a/98569/gas-resistance-values-from-bme688-on-thingy-53
+* https://devzone.nordicsemi.com/f/nordic-q-a/92593/using-bsec-2-library-for-bme688-with-thingy53
+* https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/How-to-convert-gas-res-to-AIQ-in-thingy53/m-p/67211/highlight/false#M13176
