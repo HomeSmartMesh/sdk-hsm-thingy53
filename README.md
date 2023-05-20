@@ -280,3 +280,4 @@ This repository is targetting an nRF dev kit, thereforeit is safer to derive it 
 * https://devzone.nordicsemi.com/f/nordic-q-a/92593/using-bsec-2-library-for-bme688-with-thingy53
 * https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/How-to-convert-gas-res-to-AIQ-in-thingy53/m-p/67211/highlight/false#M13176
 * https://www.hackster.io/mahmood-ul-hassan/how-to-read-nordic-thingy-53-onboard-bme688-sensor-003560
+* https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/IAQ-from-BME688-on-NRF9160-ZephyrRTOS/m-p/50953
