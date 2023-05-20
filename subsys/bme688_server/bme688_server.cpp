@@ -11,6 +11,8 @@
 #include "bme688_server.h"
 #include "bme68x.h"
 
+#include "flash_settings_storage.h"
+
 #if defined(CONFIG_BME688_BSEC2)
 #include "bsec2.h"
 #endif
@@ -24,6 +26,7 @@ LOG_MODULE_REGISTER(bme688_server, LOG_LEVEL_DBG);
 json user_data = nullptr;
 int measure_count = 0;
 uint8_t last_index = 1;
+static int64_t next_save_sec = 1 * 3600;//first save after one hour
 
 #if defined(CONFIG_BME688_BSEC2)
 iaq_output_t iaq_output;
@@ -146,6 +149,46 @@ void bme688_service(){
 
 #if defined(CONFIG_BME688_BSEC2)
 
+void print_array(uint8_t *data,uint32_t size){
+	printf("\n0x ");
+	for(uint32_t i=0;i<size+4;i++){
+		printf("%x ",data[i]);
+	}
+	printf("\n");
+}
+
+void load_state(){
+	uint8_t data[BSEC_MAX_STATE_BLOB_SIZE+4];
+	LOG_INF("Loading BSEC State");
+	fss_read_data(data,BSEC_MAX_STATE_BLOB_SIZE+4);
+	if((data[0] == 0x59) && (data[1] == 0x73)&& (data[2] == 0x17)&& (data[3] == 0x46)){
+		LOG_INF("Magic Key match => Restoring BSEC State");
+		//print_array(data+4,BSEC_MAX_STATE_BLOB_SIZE);
+		bsec2_set_state(data+4,BSEC_MAX_STATE_BLOB_SIZE);
+	}
+	else{
+		LOG_WRN("Magic Key mismatch");
+	}
+}
+
+void save_state(int64_t current_time_ns){
+	const int64_t current_time_sec = current_time_ns / (1000 * 1000 * 1000);
+	if(current_time_sec > next_save_sec){
+		LOG_INF("Saving BSEC State - next save in 24h");
+		next_save_sec = next_save_sec + (24 * 3600);//next each 24h
+
+		uint8_t data[BSEC_MAX_STATE_BLOB_SIZE+4];
+		data[0] = 0x59;
+		data[1] = 0x73;
+		data[2] = 0x17;
+		data[3] = 0x46;
+		uint32_t size = BSEC_MAX_STATE_BLOB_SIZE;
+		bsec2_get_state(data+4,size);
+		fss_write_data(data,size+4);
+		//print_array(data+4,BSEC_MAX_STATE_BLOB_SIZE);
+	}
+}
+
 void set_conf(bsec_bme_settings_t &conf){
 
 	bme688_set_oversampling(conf.temperature_oversampling,
@@ -255,6 +298,7 @@ void bme688_service_bsec2(){
 	while(!started){
 			k_sleep(K_MSEC(100));
 	}
+	load_state();
 	bsec_bme_settings_t conf;
 	bsec2_get_conf(conf);
 	while(true){
@@ -268,8 +312,9 @@ void bme688_service_bsec2(){
         {
 			measure_process(conf);
 		}
-		//sleep until next_call
 		const int64_t currTimeNs = k_ticks_to_ns_near64(k_uptime_ticks());
+		save_state(currTimeNs);//first after 1h then once every 24h
+		//sleep until next_call
 		if(currTimeNs < conf.next_call){
 			const int64_t sleep_time_us = (conf.next_call - currTimeNs) / 1000;
 	    	LOG_INF("next call in %" PRId64 " seconds",(sleep_time_us/1000000));

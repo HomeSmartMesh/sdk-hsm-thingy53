@@ -11,7 +11,7 @@ LOG_MODULE_REGISTER(bme688_bsec2, LOG_LEVEL_ERR);
 bsec_bme_settings_t bmeConf;
 bsec_output_t outputs[BSEC_NUMBER_OUTPUTS];
 uint8_t nOutputs;
-//static uint8_t workBuffer[BSEC_MAX_WORKBUFFER_SIZE];
+static uint8_t workBuffer[BSEC_MAX_WORKBUFFER_SIZE];
 
 float extTempOffset = 0.0;
 uint32_t ovfCounter = 0;
@@ -197,4 +197,16 @@ bool processData(const struct bme68x_data &data, iaq_output_t &iaq_output,int64_
 
 
     return true;
+}
+
+void bsec2_set_state(uint8_t *data,uint16_t size){
+    bsec_library_return_t res = bsec_set_state(data,size,workBuffer, BSEC_MAX_WORKBUFFER_SIZE);
+	LOG_INF("bsec2_set_state() bsec_set_state() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
+}
+
+void bsec2_get_state(uint8_t *data,uint32_t &size){
+    const uint8_t state_set_id_all = 0;
+    bsec_library_return_t res = bsec_get_state(state_set_id_all, data,
+                    BSEC_MAX_STATE_BLOB_SIZE, workBuffer, BSEC_MAX_WORKBUFFER_SIZE,&size);
+	LOG_INF("bsec2_get_state() bsec_get_state() %d => %s",res,(res == BSEC_OK)?"BSEC_OK":"FAIL");
 }

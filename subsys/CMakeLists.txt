@@ -9,5 +9,9 @@ add_subdirectory_ifdef(CONFIG_APP_LED	app_led)
 add_subdirectory_ifdef(CONFIG_APP_OT app_ot)
 add_subdirectory_ifdef(CONFIG_JSON_ENDPOINT json_endpoint)
 add_subdirectory_ifdef(CONFIG_UDP_BROADCAST udp_broadcast)
+
 add_subdirectory_ifdef(CONFIG_BME688_SERVER bme688_server)
 zephyr_include_directories_ifdef(CONFIG_BME688_SERVER bme688_server)
+
+add_subdirectory_ifdef(CONFIG_APP_FLASH app_flash)
+zephyr_include_directories_ifdef(CONFIG_APP_FLASH app_flash)
