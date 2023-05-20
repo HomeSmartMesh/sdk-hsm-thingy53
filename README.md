@@ -8,6 +8,8 @@ Zephyr reference samples for Thingy53 dev kit, simple reference samples and sens
 
 ![SensorsServer](./design/SensorsServer.drawio.svg)
 
+* Raspberry pi server repo : https://github.com/HomeSmartMesh/raspi
+
 ## Dev Kit
 Below is an open box Nordic Thingy53 attached to USB and j-Link debugger
 ![USB Attachments](./design/thingy53-usb-attachments.webp)
