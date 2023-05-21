@@ -6,7 +6,7 @@ Zephyr reference samples for Thingy53 dev kit, simple reference samples and sens
 * C++ application with json inputs for config and outputs for sensors enables direct mapping to MQTT
 * RGB Led, Light color, Battery
 
-![SensorsServer](./design/OverviewDataFlow.webp)
+![SensorsServer](./design/OverviewDataFlow-wide.webp)
 
 * Raspberry pi server repo : https://github.com/HomeSmartMesh/raspi
 
