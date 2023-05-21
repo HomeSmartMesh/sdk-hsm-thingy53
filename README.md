@@ -6,7 +6,7 @@ Zephyr reference samples for Thingy53 dev kit, simple reference samples and sens
 * C++ application with json inputs for config and outputs for sensors enables direct mapping to MQTT
 * RGB Led, Light color, Battery
 
-![SensorsServer](./design/SensorsServer.drawio.svg)
+![SensorsServer](./design/OverviewDataFlow.webp)
 
 * Raspberry pi server repo : https://github.com/HomeSmartMesh/raspi
 
@@ -276,6 +276,7 @@ This repository is targetting an nRF dev kit, thereforeit is safer to derive it 
 * Kernel services : https://docs.zephyrproject.org/latest/kernel/services/index.html
 
 ## Project references
+* https://www.hackster.io/wassimfilali/indoor-air-quality-with-thingy53-and-bme688-5c763b
 * https://devzone.nordicsemi.com/f/nordic-q-a/98569/gas-resistance-values-from-bme688-on-thingy-53
 * https://devzone.nordicsemi.com/f/nordic-q-a/92593/using-bsec-2-library-for-bme688-with-thingy53
 * https://community.bosch-sensortec.com/t5/MEMS-sensors-forum/How-to-convert-gas-res-to-AIQ-in-thingy53/m-p/67211/highlight/false#M13176
