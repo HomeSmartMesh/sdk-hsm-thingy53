@@ -59,7 +59,6 @@ cd hsm/samples/20_sensors_server
 west build
 west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
-flashing
 flashing using an attached debugger
 ```
 >west flash
@@ -74,6 +73,20 @@ Serial Port
 * USB Serial Port : with the config `CONFIG_STDOUT_CONSOLE=y` this board creates a UAB virtual COM port of stdout. Note using the nRFSDK Connect Serial Terminal allows auto detection and reconnect of serial ports, very useful to recover automatically after flashing
 * RTT Debugger Serial Port : using `CONFIG_USE_SEGGER_RTT=y` it is possible to have logs with the attached debugger and without using the board USB device, this needs rebuild the sample differently though.
 
+## joining a thread network
+sample with joiner config `CONFIG_OPENTHREAD_JOINER_PSKD` are [13_ot_joiner](#13_ot_joiner), [14_ot_udp_echo_server](#14_ot_udp_echo_server), [15_udp_json_endpoint](#15_udp_json_endpoint) and [20_sensors_server](#20_sensors_server)
+Note: Make sure to press the Thingy53 button after the raspberry pi commissioner is started. The button will reset the device and try to join thread networks on the new startup.
+
+joining info:
+* the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
+* without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
+
+on the raspberry pi
+```shell
+sudo ot-ctl
+commissioner start
+commissioner joiner add * ABCDE2
+```
 
 # Samples details
 for convenience and given that this repo is providing samples for `thingy53_nrf5340_cpuapp` board, it has been configured in the CMakeLists.txt to be taken as default board, it is still possbile to override it with -b option.
@@ -102,7 +115,7 @@ used pios
 ## 04_bme680
 [samples/04_bme680](./samples/04_bme680)
 
-    Note : Do not use this sample, it is for info only, using BME680 driver for BME688 can only fetch temp,hum,press but not gas due to difference in registers config
+Note: Do not use this sample, it is for info only, using BME680 driver for BME688 can only fetch temp,hum,press but not gas due to difference in registers config
 
 * this sample is based on [BME680 Zephyr sample](https://docs.zephyrproject.org/latest/samples/sensor/bme680/README.html) from Nordic's fork [nRF BME680 Zephyr sample](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/samples/sensor/bme680/README.html)
 * this samples uses the device drivers declaration `bosch,bme680` in the thingy53 dts file `thingy53_nrf5340_common.dts` used for
@@ -207,10 +220,6 @@ build options
 >west build
 >west build -- -DOVERLAY_CONFIG="overlay-logging.conf"
 ```
-
-Note on joining:
-* the `eui64` can be known by first flashing the logging version with `overlay-logging.conf`
-* without knowing the `eui64` it is also possible to commission with '*' as `eui64` parameter
 
 ## 14_ot_udp_echo_server
 [samples/14_ot_udp_echo_server](./samples/14_ot_udp_echo_server)
