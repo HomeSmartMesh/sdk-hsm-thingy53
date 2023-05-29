@@ -6,5 +6,6 @@ menuconfig SENSOR
 if SENSOR
 
 rsource "bme688/Kconfig"
+rsource "bh1749/Kconfig"
 
 endif # SENSOR

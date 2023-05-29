@@ -63,6 +63,10 @@ flashing using an attached debugger
 ```
 >west flash
 ```
+recover by deleting flash
+```
+>west flash --recover
+```
 
 flashing manually
 * connect to USB

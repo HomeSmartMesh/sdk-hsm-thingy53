@@ -1,0 +1,11 @@
+#
+#  Copyright (c) 2019 Nordic Semiconductor ASA
+#
+#  SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+menuconfig BH1749_ADAPTIVE
+	bool "Adaptive BH1749 Sensor"
+	depends on I2C
+	help
+	  Enable driver for Adaptive BH1749 sensors.

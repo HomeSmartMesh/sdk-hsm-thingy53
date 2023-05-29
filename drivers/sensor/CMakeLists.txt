@@ -1,3 +1,6 @@
 
 add_subdirectory_ifdef(CONFIG_BME688 bme688)
 zephyr_include_directories_ifdef(CONFIG_BME688 bme688)
+
+add_subdirectory_ifdef(CONFIG_BH1749_ADAPTIVE bh1749)
+zephyr_include_directories_ifdef(CONFIG_BH1749_ADAPTIVE bh1749)

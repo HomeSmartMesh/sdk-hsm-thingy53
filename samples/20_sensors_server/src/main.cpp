@@ -84,13 +84,13 @@ void json_endpoint_handler(std::string &client, std::string &topic, json &reques
 }
 
 void bme688_handler(json &data){
-	send_data("thingy_53/tester/env",data);
+	send_data("thread_tags/tester1/env",data);
 }
 
 int main(void)
 {
 	LOG_INF(R"(
-	main()
+	main(1)
 	sensors server sample
 	)");
 
@@ -113,7 +113,7 @@ int main(void)
 		bool is_charging = app_battery_charging();
 		data["voltage"] = voltage;
 		data["charging"] = is_charging;
-		send_data("thingy_53/tester/state",data);
+		send_data("thread_tags/tester1/state",data);
 		data = {};
 		k_sleep(K_MSEC(5000));
 
@@ -124,7 +124,7 @@ int main(void)
 		data["light_green"] = g;
 		data["light_blue"] = b;
 		data["light_ir"] = ir;
-		send_data("thingy_53/tester/light",data);
+		send_data("thread_tags/tester1/light",data);
 		data = {};
 
 		app_led_blink_blue(0.08,100,0);
