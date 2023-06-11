@@ -93,6 +93,13 @@ int32_t app_battery_voltage_mv()
 	return result;
 }
 
+void app_battery_voltage_text(const char * text,int max_size){
+	int32_t v = app_battery_voltage_mv();
+	float vf = v;
+	vf /=1000;
+	sprintf_s(text,max_size,"%.3f",vf);
+}
+
 bool app_battery_charging()
 {
 	return (bool)gpio_pin_get_dt(&sChargeGpio);

@@ -109,7 +109,8 @@ int main(void)
 		
 		//state
 		data["alive"] = count++;
-		int32_t voltage = app_battery_voltage_mv();
+		char voltage[10];
+		app_battery_voltage_text(voltage);
 		bool is_charging = app_battery_charging();
 		data["voltage"] = voltage;
 		data["charging"] = is_charging;
