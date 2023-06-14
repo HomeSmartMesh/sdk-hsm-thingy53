@@ -12,3 +12,14 @@ sudo ot-ctl
 commissioner start
 commissioner joiner add * ABCDE2
 ```
+
+or on a cli dongle as explained in https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/protocols/thread/overview/commissioning.html#setting-up-the-commissioner
+
+```shell
+ot dataset init new
+ot dataset channel 16
+ot dataset networkkey 00112233445566778899aabbccddeeff
+ot dataset commit active
+ot ifconfig up
+ot thread start
+```
