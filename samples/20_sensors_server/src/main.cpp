@@ -22,8 +22,19 @@ using json = nlohmann::json;
 
 LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 
+#define SLEEP_DELAY_SEC 20
+
 const struct device *sensor_dev_bh1749;
 const struct device *sensor_dev_bme688;
+char uid_text[20];
+
+
+void init_uid(char*text){
+	long unsigned int id0 = NRF_FICR->INFO.DEVICEID[0];//just for type casting and readable printing
+	long unsigned int id1 = NRF_FICR->INFO.DEVICEID[1];
+	sprintf(text,"%08lX%08lX",id0,id1);
+	LOG_INF("Device ID:%s",text);
+}
 
 void send_data(std::string topic,json &data){
 	std::string message = topic+data.dump();
@@ -84,7 +95,8 @@ void json_endpoint_handler(std::string &client, std::string &topic, json &reques
 }
 
 void bme688_handler(json &data){
-	send_data("thread_tags/tester1/env",data);
+	std::string topic = "thread_tags/"+std::string(uid_text)+"/env";
+	send_data(topic.c_str(),data);
 }
 
 int main(void)
@@ -94,6 +106,7 @@ int main(void)
 	sensors server sample
 	)");
 
+	init_uid(uid_text);
 	app_ot_init();//logs joiner info and initializes reset buttons
 	app_led_init();
 	app_battery_init();
@@ -104,6 +117,7 @@ int main(void)
 	app_led_blink_green(0.1,500,1000);
 
 	int count = 0;
+	std::string topic;
 	while(1){
 		json data;
 		
@@ -114,7 +128,8 @@ int main(void)
 		bool is_charging = app_battery_charging();
 		data["voltage"] = voltage;
 		data["charging"] = is_charging;
-		send_data("thread_tags/tester1/state",data);
+		topic = "thread_tags/"+std::string(uid_text)+"/state";
+		send_data(topic.c_str(),data);
 		data = {};
 		k_sleep(K_MSEC(5000));
 
@@ -125,11 +140,12 @@ int main(void)
 		data["light_green"] = g;
 		data["light_blue"] = b;
 		data["light_ir"] = ir;
-		send_data("thread_tags/tester1/light",data);
+		topic = "thread_tags/"+std::string(uid_text)+"/light";
+		send_data(topic.c_str(),data);
 		data = {};
 
 		app_led_blink_blue(0.08,100,0);
 
-		k_sleep(K_MSEC(5000));
+		k_sleep(K_MSEC(SLEEP_DELAY_SEC*1000));
 	}
 }

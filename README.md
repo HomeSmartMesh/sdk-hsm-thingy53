@@ -153,6 +153,9 @@ references
 * `bme688_data_get()`
 
 ## 07_bme688_parallel_cpp
+
+!! crashing to be fixed !! in the meanwhile and for parallel mode see 06_bme688_parallel
+
 [samples/07_bme688_parallel_cpp](./samples/07_bme688_parallel_cpp)
 
 * a C++ wrapper for bme688_server library
