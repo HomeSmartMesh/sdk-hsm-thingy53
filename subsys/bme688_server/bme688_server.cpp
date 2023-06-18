@@ -26,9 +26,9 @@ LOG_MODULE_REGISTER(bme688_server, LOG_LEVEL_DBG);
 json user_data = nullptr;
 int measure_count = 0;
 uint8_t last_index = 1;
-static int64_t next_save_sec = 1 * 3600;//first save after one hour
 
 #if defined(CONFIG_BME688_BSEC2)
+static int64_t next_save_sec = 1 * 3600;//first save after one hour
 iaq_output_t iaq_output;
 void bme688_service_bsec2();
 K_THREAD_DEFINE(	bme688_thread, BME688_SERVICE_STACK_SIZE, bme688_service_bsec2, NULL, NULL, NULL,
