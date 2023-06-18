@@ -31,16 +31,16 @@ void main(void)
 	while (1) {
 		//bme688 API usage, sensor_sample_fetch and sensor_channel_get also available
 		bme688_sample_fetch(dev,SENSOR_CHAN_ALL);
-		struct bme68x_data data[3];//max 3, but only 1 expected
-		uint8_t n_fields = bme688_data_get(dev, data);
-		if(n_fields == 1){//only 1 expected in Forced mode
-			if (data[0].status == BME68X_VALID_DATA){
+		struct bme68x_data data;
+		uint8_t n_fields = bme688_data_get(dev, &data);
+		if(n_fields){//only 1 expected in Forced mode
+			if (data.status == BME68X_VALID_DATA){
 				printf("%d, %.2f, %.2f, %.2f, %.2f\n",
 					sample_count,
-					data[0].temperature,
-					data[0].pressure,
-					data[0].humidity,
-					data[0].gas_resistance);
+					data.temperature,
+					data.pressure,
+					data.humidity,
+					data.gas_resistance);
 				sample_count++;
 			}
 		}
