@@ -249,9 +249,6 @@ void bme688_set_mode_forced(){
     rslt = bme68x_set_heatr_conf(BME68X_FORCED_MODE, &heatr_conf,&bme_api_dev);
     bme68x_check_rslt("bme68x_set_heatr_conf",rslt);
 
-    rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
-    bme68x_check_rslt("bme68x_set_op_mode",rslt);
-
 }
 
 void bme688_set_mode_parallel()
@@ -377,6 +374,12 @@ int bme688_sample_fetch(const struct device *dev,enum sensor_channel chan)
 {
     int8_t rslt = BME68X_OK;
 
+    //this should be performed in a loop before each wait
+    if(mode == bme688_mode_forced){
+        rslt = bme68x_set_op_mode(BME68X_FORCED_MODE,&bme_api_dev);
+        bme68x_check_rslt("bme68x_set_op_mode",rslt);
+    }
+
     bme688_wait_for_measure();
 
 	return rslt;
@@ -400,9 +403,15 @@ uint8_t bme688_data_get(const struct device *dev, struct bme68x_data *p_data){
         default:
         break;
     }
-
-    for(uint8_t i = 0; i < n_fields; i++){
-        p_data[i] = data[i];
+    if(mode == bme688_mode_forced){
+        if(n_fields == 1){
+            *p_data = data[0];
+        }
+    }
+    else{
+        for(uint8_t i = 0; i < n_fields; i++){
+            p_data[i] = data[i];
+        }
     }
     return n_fields;
 }
