@@ -15,6 +15,12 @@
     * Long press > 3 sec : Openthread factory reset
 * CLI : when connected to a USB Host, a command line interface is available with "ot" commands and others
 
+This repo provides a binary for dfu flashing
+
+```shell
+nrfutil dfu usb-serial -pkg flash/zephyr.zip -p COM9
+```
+
 # developer guide
 This sample is a config only that should be added as overlay to `nrf\samples\openthread\cli\` then built with the following command
 
