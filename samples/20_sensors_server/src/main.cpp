@@ -22,6 +22,7 @@ using json = nlohmann::json;
 
 LOG_MODULE_REGISTER(sensor_server_sample, CONFIG_SONSORS_SERVER_LOG_LEVEL);
 
+#define LED_PWM_RATIO 0.5
 #define SLEEP_DELAY_SEC 20
 
 const struct device *sensor_dev_bh1749;
@@ -94,9 +95,42 @@ void json_endpoint_handler(std::string &client, std::string &topic, json &reques
 	response["result"] = "OK";
 }
 
+
 void bme688_handler(json &data){
-	std::string topic = "thread_tags/"+std::string(uid_text)+"/env";
-	send_data(topic.c_str(),data);
+	static int subsample_count = 0;
+	subsample_count++;
+	if((subsample_count%10) == 0){
+		std::string topic = "thread_tags/"+std::string(uid_text)+"/env";
+		send_data(topic.c_str(),data);
+	}
+}
+
+void led_notify_ot_role(){
+		otDeviceRole role = ot_app_role();
+		if(role == OT_DEVICE_ROLE_DISABLED){
+			app_led_blink_red(LED_PWM_RATIO,300,900);
+			app_led_blink_red(LED_PWM_RATIO,300,900);
+			app_led_blink_red(LED_PWM_RATIO,300,900);
+			LOG_INF("role: Disabled");
+		}else if(role == OT_DEVICE_ROLE_DETACHED){
+			app_led_blink_blue(LED_PWM_RATIO,300,600);
+			app_led_blink_blue(LED_PWM_RATIO,300,600);
+			LOG_INF("role: Detached");
+		}else if(role == OT_DEVICE_ROLE_CHILD){
+			app_led_blink_green(LED_PWM_RATIO,400,600);
+			LOG_INF("role: Child");
+		}else if(role == OT_DEVICE_ROLE_ROUTER){
+			app_led_blink_color(0.01,0.89,0.87,400,600);//#03E2DD
+			LOG_INF("role: Router");
+		}else if(role == OT_DEVICE_ROLE_LEADER){
+			app_led_blink_color(0.49,0.46,0.97,400,600);//#7E77F8
+			LOG_INF("role: Leader");
+		}else{
+			app_led_blink_red(LED_PWM_RATIO,100,100);
+			app_led_blink_red(LED_PWM_RATIO,100,100);
+			app_led_blink_red(LED_PWM_RATIO,100,100);
+			LOG_INF("role: Unknown");
+		}
 }
 
 int main(void)
@@ -114,7 +148,9 @@ int main(void)
 	set_endpoint_handler(json_endpoint_handler);
 	start_bme688(bme688_handler);
 
-	app_led_blink_green(0.1,500,1000);
+	app_led_blink_red(LED_PWM_RATIO,300,100);
+	app_led_blink_blue(LED_PWM_RATIO,300,100);
+	app_led_blink_green(LED_PWM_RATIO,300,100);
 
 	int count = 0;
 	std::string topic;
@@ -144,8 +180,7 @@ int main(void)
 		send_data(topic.c_str(),data);
 		data = {};
 
-		app_led_blink_blue(0.08,100,0);
-
+		led_notify_ot_role();
 		k_sleep(K_MSEC(SLEEP_DELAY_SEC*1000));
 	}
 }
